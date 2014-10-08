@@ -29,17 +29,15 @@ import org.apache.spark.rdd.RDD
  * @param subIterations the number of iterations at digging
  * @param epsilon the threshold to stop the sub-iterations
  * @param randomSeed uses in sampling data for initializing centers in each sub iterations
- * @param sampleSize sample size for initializing centers
  */
 class HierarchicalClusteringConf(
   private var strategy: ClusterTreeStats,
   private var numClusters: Int,
   private var subIterations: Int,
   private var epsilon: Double,
-  private var randomSeed: Int,
-  private var sampleSize: Int) extends Serializable {
+  private var randomSeed: Int) extends Serializable {
 
-  def this() = this(new ClusterVarianceStats, 100, 20, 10E-6, 1, 100)
+  def this() = this(new ClusterVarianceStats, 100, 20, 10E-6, 1)
 
   def setStrategy(strategy: ClusterTreeStats): this.type = {
     this.strategy = strategy
@@ -75,13 +73,6 @@ class HierarchicalClusteringConf(
   }
 
   def getRandomSeed(): Int = this.randomSeed
-
-  def setSampleSize(sampleSize: Int): this.type = {
-    this.sampleSize = sampleSize
-    this
-  }
-
-  def getSampleSize(): Int = this.sampleSize
 }
 
 
@@ -164,7 +155,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    */
   private[clustering] def takeInitCenters(data: RDD[Vector]): Array[Vector] = {
     // NOTE: In order to avoid to select the same point stochastically, select the many points
-    var sampledVectors = data.takeSample(false, conf.getSampleSize, conf.getRandomSeed)
+    var sampledVectors = data.takeSample(false, 1000, conf.getRandomSeed)
 
     // finds the pair of the most far points
     // If the both of the pair are same, the all may be same
