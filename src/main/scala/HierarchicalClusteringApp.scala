@@ -18,7 +18,7 @@ object HierarchicalClusteringApp {
 
     val appName = s"${this.getClass().getSimpleName},maxCores,${maxCores},rows:${rows}:dim:${dimension},"
     val conf = new SparkConf()
-        .setAppName("hierarchical clustering")
+        .setAppName(appName)
         .setMaster(master)
         .set("spark.cores.max", maxCores)
     val sc = new SparkContext(conf)
