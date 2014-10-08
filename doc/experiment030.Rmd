@@ -1,0 +1,71 @@
+## Experiment 3: About cores
+
+- Object: Check the efficient of the number of cores
+
+### EC2 Environment
+
+I run the hierarchical clustering application on EC2. 
+
+- Master Instance Type: r3.large
+- Slave Instance Type: r3.8xlarge
+    - Cores: 32
+    - Memory: 144GB
+- # of Slaves: 5
+    - Total Cores: 64
+    - Total Memory: 239GB
+
+### Experimental Setup
+
+I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
+
+- # Used Cores(# Slaves: 5): 2, 4, 6, 8, 10, 12, 14, 16, 18, 20
+- # Clusters: 10
+- # Rows: 200000
+- # Dimensions: 100
+
+### The Result of Training Execution Time
+
+```{r echo=FALSE, warning=FALSE}
+library(reshape2)
+result3 <- read.csv("./data/benchmark-dim100.csv")
+result3$sec <- result3$trainMilliSec / 1000
+```
+
+```{r echo=FALSE, warning=FALSE}
+result3.cast <- dcast(result3, maxCores ~ rows, value.var="sec", sum)
+x <- result3.cast[, 1]
+y <- result3.cast[, 2:4]
+matplot(x, y
+        , xlab="# Cores"
+        , ylab="Training Execution Time [sec]"
+        , ylim=c(0, max(y))
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
+grid()
+legend("topright", legend=c(colnames(y))
+       , pch=1:(length(y)), col=rainbow(length(y)))
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+kable(result3)
+```
+
+Where `maxCores` is the number of execution cores on Apache Spark,`numClusters` is the number of clusters gotten, `trainMilliSec` is the execution time for training in millisecond, `dimension` is the number of dimensions of the vectors which are treated in the clustering algorithm, `rows` is the number of trained vectors, `numPartitions` is the number of partitions of a RDD, `sec` is the execution time for training in second.
+
+
+```{r echo=FALSE, warning=FALSE}
+x <- result3.cast[, 1]
+y <- apply(result3.cast[, 2:4], 2, function(x) {x / x[1]})
+matplot(x, y
+        , xlab="# Cores"
+        , ylab="Index against # CPU Cores:2"
+        , ylim=c(0, max(y))
+        , pch=1:(ncol(y)), col=rainbow(ncol(y)), type="o")
+grid()
+legend("topright", legend=c(colnames(y))
+       , pch=1:(ncol(y)), col=rainbow(ncol(y)))
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+result3.cast.index <- cbind(x, y)
+kable(result3.cast.index)
+```

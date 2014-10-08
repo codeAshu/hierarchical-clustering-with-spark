@@ -1,4 +1,4 @@
-## Hierarchical Clustering Experiments
+## Experiment 1: Slaves x 2
 
 ### EC2 Environment
 
@@ -31,24 +31,24 @@ Under the number of rows is 10000000 and the number of clusters is 100, I could 
 ```{r echo=FALSE, warning=FALSE}
 library(reshape2)
 result <- read.csv("./data/benchmark-cores64-dim100.csv")
-result$sec <- result$millisec / 1000
-result.cast <- dcast(result, num.clusters ~ rows, value.var="sec", sum)
+result$sec <- result$trainMilliSec / 1000
+result.cast <- dcast(result, numClusters ~ rows, value.var="sec", sum)
 ```
 
 ```{r echo=FALSE, warning=FALSE}
-matplot(result.cast[, 1], result.cast[, 2:4]
+x <- result2.cast[, 1]
+y <- result2.cast[, 2:4]
+matplot(x, y
         , xlab="# Clusters"
         , ylab="Training Execution Time [sec]"
-        , pch=1:3, col=rainbow(3), type="o")
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
 grid()
-legend("topright", legend=c("100000", "1000000", "10000000")
-       , pch=1:3, col=rainbow(3))
+legend("topleft", legend=c(names(y))
+       , pch=1:(length(y)), col=rainbow(length(y)))
 ```
 
-```{r echo=FALSE, warning=FALSE}
-dcast
+```{r echo=FALSE, warning=FALSE, results="asis"}
+kable(result)
 ```
 
-### Discussion
-
-I feel that the execution time for training was greater than I had expected.  If possible, I want to decrease the execution time to 1/10, at least 1/5.
+Where `numClusters` is the number of clusters gotten, `trainMilliSec` is the execution time for training in millisecond, `dimension` is the number of dimensions of the vectors which are treated in the clustering algorithm, `rows` is the number of trained vectors, `numPartitions` is the number of partitions of a RDD, `sec` is the execution time for training in second.

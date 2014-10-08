@@ -1,0 +1,8 @@
+## Discussion
+
+- The more the number of clusters which you want increases, the more the training execution time increases linearly.
+- The more the number of input data rows increases, the more the training execution time increases linearly.
+- The more the number of CPU cores on the Apache Spark cluster, the more the training execution time decrease. However if the number of CPU cores is large against the input data size, the time is saturant.
+
+I feel that the algorithm was slower than I had expected.  If possible, I want to decrease the execution time from at least 1/5 to 1/10.
+

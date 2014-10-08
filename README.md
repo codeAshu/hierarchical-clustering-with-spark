@@ -13,6 +13,10 @@ You have to build your Apache Spark cluster on EC2 with `spark-ec2` which is in 
 `bin/experiment.sh` is the benchmark script.
 
 ```
+## change root if possible
+## Or modify the path to `spark-env.sh`
+sudo su -
+
 ## how to build
 cd ~
 git clone {this_repository}
