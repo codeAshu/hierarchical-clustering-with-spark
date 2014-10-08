@@ -394,7 +394,8 @@ object ClusterTree {
 /**
  * This trait class is use for the condition to split the cluster in training
  */
-trait ClusterTreeStats extends Function1[Seq[ClusterTree], Map[ClusterTree, Double]] {
+trait ClusterTreeStats
+    extends Function1[Seq[ClusterTree], Map[ClusterTree, Double]] with Serializable{
   def apply(clusterTrees: Seq[ClusterTree]): Map[ClusterTree, Double]
 }
 
@@ -411,7 +412,9 @@ class DataSizeStats extends ClusterTreeStats {
 /**
  * Calculates the sum of the variances of the cluster
  */
-class ClusterVarianceStats extends ClusterTreeStats {
+class ClusterVarianceStats private (private var dimension: Option[Int]) extends ClusterTreeStats {
+
+  def this() = this(None)
 
   override def apply(clusterTrees: Seq[ClusterTree]): Map[ClusterTree, Double] = {
     clusterTrees.map(tree => (tree, calculateVariance(tree.data))).toMap
@@ -424,8 +427,8 @@ class ClusterVarianceStats extends ClusterTreeStats {
    * @return the sum of the variances
    */
   def calculateVariance(data: RDD[Vector]): Double = {
-    val first = data.first()
-    val zeroVector = () => Vectors.zeros(first.size).toBreeze
+    if (this.dimension == None) this.dimension = Some(data.first().size)
+    val zeroVector = () => Vectors.zeros(this.dimension.get).toBreeze
 
     // mapper for each partition
     val eachStats = data.mapPartitions { iter =>
