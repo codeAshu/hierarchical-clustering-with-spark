@@ -1,0 +1,54 @@
+## Hierarchical Clustering Experiments
+
+### EC2 Environment
+
+I run the hierarchical clustering application on EC2. 
+
+- Master Instance Type: r3.large
+- Slave Instance Type: r3.8xlarge
+    - Cores: 32
+    - Memory: 144GB
+- # of Slaves: 2
+    - Total Cores: 64
+    - Total Memory: 239GB
+
+
+### Experimental Setup
+
+I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
+
+- # Used Cores: 160
+- # Clusters: 5, 10, 20, 50, 100
+- # Rows: 100000, 10000000 10000000
+- # Dimensions: 100
+
+You know, we have to run the application under another condisions for benchmarking. For example, changing the number of used cores and the number of dimensions.
+
+### The Result of Training Execution Time
+
+Under the number of rows is 10000000 and the number of clusters is 100, I could not run my application, maybe because of [SPARK-3106](https://issues.apache.org/jira/browse/SPARK-3106).
+
+```{r echo=FALSE, warning=FALSE}
+library(reshape2)
+result <- read.csv("./data/benchmark-cores64-dim100.csv")
+result$sec <- result$millisec / 1000
+result.cast <- dcast(result, num.clusters ~ rows, value.var="sec", sum)
+```
+
+```{r echo=FALSE, warning=FALSE}
+matplot(result.cast[, 1], result.cast[, 2:4]
+        , xlab="# Clusters"
+        , ylab="Training Execution Time [sec]"
+        , pch=1:3, col=rainbow(3), type="o")
+grid()
+legend("topright", legend=c("100000", "1000000", "10000000")
+       , pch=1:3, col=rainbow(3))
+```
+
+```{r echo=FALSE, warning=FALSE}
+dcast
+```
+
+### Discussion
+
+I feel that the execution time for training was greater than I had expected.  If possible, I want to decrease the execution time to 1/10, at least 1/5.

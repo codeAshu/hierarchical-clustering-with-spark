@@ -1,0 +1,14 @@
+{"numClusters" : "5", "trainMilliSec" : "23915", "dimension" : "100", "rows" : "100000", "numPartitions" : "192"}
+{"numClusters" : "10", "trainMilliSec" : "37879", "dimension" : "100", "rows" : "100000", "numPartitions" : "192"}
+{"numClusters" : "20", "trainMilliSec" : "62682", "dimension" : "100", "rows" : "100000", "numPartitions" : "192"}
+{"numClusters" : "50", "trainMilliSec" : "134075", "dimension" : "100", "rows" : "100000", "numPartitions" : "192"}
+{"numClusters" : "100", "trainMilliSec" : "245742", "dimension" : "100", "rows" : "100000", "numPartitions" : "192"}
+{"numClusters" : "5", "trainMilliSec" : "49803", "dimension" : "100", "rows" : "1000000", "numPartitions" : "192"}
+{"numClusters" : "10", "trainMilliSec" : "115263", "dimension" : "100", "rows" : "1000000", "numPartitions" : "192"}
+{"numClusters" : "20", "trainMilliSec" : "252856", "dimension" : "100", "rows" : "1000000", "numPartitions" : "192"}
+{"numClusters" : "50", "trainMilliSec" : "647256", "dimension" : "100", "rows" : "1000000", "numPartitions" : "192"}
+{"numClusters" : "100", "trainMilliSec" : "1294181", "dimension" : "100", "rows" : "1000000", "numPartitions" : "192"}
+{"numClusters" : "5", "trainMilliSec" : "475103", "dimension" : "100", "rows" : "10000000", "numPartitions" : "192"}
+{"numClusters" : "10", "trainMilliSec" : "1043169", "dimension" : "100", "rows" : "10000000", "numPartitions" : "192"}
+{"numClusters" : "20", "trainMilliSec" : "2333825", "dimension" : "100", "rows" : "10000000", "numPartitions" : "192"}
+{"numClusters" : "50", "trainMilliSec" : "5350811", "dimension" : "100", "rows" : "10000000", "numPartitions" : "192"}

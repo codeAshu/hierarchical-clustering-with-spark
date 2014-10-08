@@ -1,0 +1,356 @@
+## Appendix: Spark Cluster Environment
+
+### Runtime Information
+
+<table class="table table-bordered table-striped table-condensed sortable table-fixed">
+  <thead>
+    <tr>
+      <th width="50.0%">Name</th>
+      <th width="50.0%">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Java Home</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre</td>
+    </tr>
+    <tr>
+      <td>Java Version</td>
+      <td>1.7.0_65 (Oracle Corporation)</td>
+    </tr>
+    <tr>
+      <td>Scala Version</td>
+      <td>version 2.10.4</td>
+    </tr>
+  </tbody>
+  <tfoot></tfoot>
+</table>
+<h4>Spark Properties</h4>
+<table class="table table-bordered table-striped table-condensed sortable table-fixed">
+  <thead>
+    <tr>
+      <th width="50.0%" class=" sorttable_sorted">Name</th>
+      <th width="50.0%" class="">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>spark.app.name</td>
+      <td>hierarchical clustering</td>
+    </tr>
+    <tr>
+      <td>spark.cores.max</td>
+      <td>64</td>
+    </tr>
+    <tr>
+      <td>spark.driver.host</td>
+      <td>ip-10-168-49-221.ap-northeast-1.compute.internal</td>
+    </tr>
+    <tr>
+      <td>spark.driver.port</td>
+      <td>35853</td>
+    </tr>
+    <tr>
+      <td>spark.executor.extraClassPath</td>
+      <td>/root/ephemeral-hdfs/conf</td>
+    </tr>
+    <tr>
+      <td>spark.executor.extraLibraryPath</td>
+      <td>/root/ephemeral-hdfs/lib/native/</td>
+    </tr>
+    <tr>
+      <td>spark.executor.memory</td>
+      <td>235520m</td>
+    </tr>
+    <tr>
+      <td>spark.fileserver.uri</td>
+      <td><span><a class="smarterwiki-linkify" href="http://10.168.49.221:42810">http://10.168.49.221:42810</a></span></td>
+    </tr>
+    <tr>
+      <td>spark.jars</td>
+      <td>file:/root/hierarchical-clustering-with-spark/target/scala-2.10/hierarchical-clustering_2.10-0.0.1.jar</td>
+    </tr>
+    <tr>
+      <td>spark.master</td>
+      <td>spark://ec2-54-95-186-78.ap-northeast-1.compute.amazonaws.com:7077</td>
+    </tr>
+    <tr>
+      <td>spark.scheduler.mode</td>
+      <td>FIFO</td>
+    </tr>
+    <tr>
+      <td>spark.tachyonStore.folderName</td>
+      <td>spark-f418d485-90b6-4770-8694-d1721a07e5b6</td>
+    </tr>
+  </tbody>
+  <tfoot></tfoot>
+</table>
+
+### System Properties
+
+<table class="table table-bordered table-striped table-condensed sortable table-fixed">
+  <thead>
+    <tr>
+      <th width="50.0%">Name</th>
+      <th width="50.0%">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SPARK_SUBMIT</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>awt.toolkit</td>
+      <td>sun.awt.X11.XToolkit</td>
+    </tr>
+    <tr>
+      <td>file.encoding</td>
+      <td>UTF-8</td>
+    </tr>
+    <tr>
+      <td>file.encoding.pkg</td>
+      <td>sun.io</td>
+    </tr>
+    <tr>
+      <td>file.separator</td>
+      <td>/</td>
+    </tr>
+    <tr>
+      <td>java.awt.graphicsenv</td>
+      <td>sun.awt.X11GraphicsEnvironment</td>
+    </tr>
+    <tr>
+      <td>java.awt.printerjob</td>
+      <td>sun.print.PSPrinterJob</td>
+    </tr>
+    <tr>
+      <td>java.class.version</td>
+      <td>51.0</td>
+    </tr>
+    <tr>
+      <td>java.endorsed.dirs</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/endorsed</td>
+    </tr>
+    <tr>
+      <td>java.ext.dirs</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/ext:/usr/java/packages/lib/ext</td>
+    </tr>
+    <tr>
+      <td>java.home</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre</td>
+    </tr>
+    <tr>
+      <td>java.io.tmpdir</td>
+      <td>/tmp</td>
+    </tr>
+    <tr>
+      <td>java.library.path</td>
+      <td>:/root/ephemeral-hdfs/lib/native/:/root/ephemeral-hdfs/lib/native/</td>
+    </tr>
+    <tr>
+      <td>java.runtime.name</td>
+      <td>OpenJDK Runtime Environment</td>
+    </tr>
+    <tr>
+      <td>java.runtime.version</td>
+      <td>1.7.0_65-mockbuild_2014_09_18_00_28-b00</td>
+    </tr>
+    <tr>
+      <td>java.specification.name</td>
+      <td>Java Platform API Specification</td>
+    </tr>
+    <tr>
+      <td>java.specification.vendor</td>
+      <td>Oracle Corporation</td>
+    </tr>
+    <tr>
+      <td>java.specification.version</td>
+      <td>1.7</td>
+    </tr>
+    <tr>
+      <td>java.vendor</td>
+      <td>Oracle Corporation</td>
+    </tr>
+    <tr>
+      <td>java.vendor.url</td>
+      <td><span><a class="smarterwiki-linkify" href="http://java.oracle.com/">http://java.oracle.com/</a></span></td>
+    </tr>
+    <tr>
+      <td>java.vendor.url.bug</td>
+      <td><span><a class="smarterwiki-linkify" href="http://bugreport.sun.com/bugreport/">http://bugreport.sun.com/bugreport/</a></span></td>
+    </tr>
+    <tr>
+      <td>java.version</td>
+      <td>1.7.0_65</td>
+    </tr>
+    <tr>
+      <td>java.vm.info</td>
+      <td>mixed mode</td>
+    </tr>
+    <tr>
+      <td>java.vm.name</td>
+      <td>OpenJDK 64-Bit Server VM</td>
+    </tr>
+    <tr>
+      <td>java.vm.specification.name</td>
+      <td>Java Virtual Machine Specification</td>
+    </tr>
+    <tr>
+      <td>java.vm.specification.vendor</td>
+      <td>Oracle Corporation</td>
+    </tr>
+    <tr>
+      <td>java.vm.specification.version</td>
+      <td>1.7</td>
+    </tr>
+    <tr>
+      <td>java.vm.vendor</td>
+      <td>Oracle Corporation</td>
+    </tr>
+    <tr>
+      <td>java.vm.version</td>
+      <td>24.65-b04</td>
+    </tr>
+    <tr>
+      <td>line.separator</td>
+      <td>
+      </td>
+    </tr>
+    <tr>
+      <td>os.arch</td>
+      <td>amd64</td>
+    </tr>
+    <tr>
+      <td>os.name</td>
+      <td>Linux</td>
+    </tr>
+    <tr>
+      <td>os.version</td>
+      <td>3.4.37-40.44.amzn1.x86_64</td>
+    </tr>
+    <tr>
+      <td>path.separator</td>
+      <td>:</td>
+    </tr>
+    <tr>
+      <td>sun.arch.data.model</td>
+      <td>64</td>
+    </tr>
+    <tr>
+      <td>sun.boot.class.path</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/resources.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/rt.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/jsse.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/jce.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/charsets.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/rhino.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/jfr.jar:/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/classes</td>
+    </tr>
+    <tr>
+      <td>sun.boot.library.path</td>
+      <td>/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.65.x86_64/jre/lib/amd64</td>
+    </tr>
+    <tr>
+      <td>sun.cpu.endian</td>
+      <td>little</td>
+    </tr>
+    <tr>
+      <td>sun.cpu.isalist</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>sun.io.unicode.encoding</td>
+      <td>UnicodeLittle</td>
+    </tr>
+    <tr>
+      <td>sun.java.command</td>
+      <td>org.apache.spark.deploy.SparkSubmit --master spark://ec2-54-95-186-78.ap-northeast-1.compute.amazonaws.com:7077 --class HierarchicalClusteringApp --total-executor-cores 64 /root/hierarchical-clustering-with-spark/target/scala-2.10/hierarchical-clustering_2.10-0.0.1.jar spark://ec2-54-95-186-78.ap-northeast-1.compute.amazonaws.com:7077 64 10000000 100 100 192</td>
+    </tr>
+    <tr>
+      <td>sun.java.launcher</td>
+      <td>SUN_STANDARD</td>
+    </tr>
+    <tr>
+      <td>sun.jnu.encoding</td>
+      <td>UTF-8</td>
+    </tr>
+    <tr>
+      <td>sun.management.compiler</td>
+      <td>HotSpot 64-Bit Tiered Compilers</td>
+    </tr>
+    <tr>
+      <td>sun.nio.ch.bugLevel</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>sun.os.patch.level</td>
+      <td>unknown</td>
+    </tr>
+    <tr>
+      <td>user.country</td>
+      <td>US</td>
+    </tr>
+    <tr>
+      <td>user.dir</td>
+      <td>/root/hierarchical-clustering-with-spark</td>
+    </tr>
+    <tr>
+      <td>user.home</td>
+      <td>/root</td>
+    </tr>
+    <tr>
+      <td>user.language</td>
+      <td>en</td>
+    </tr>
+    <tr>
+      <td>user.name</td>
+      <td>root</td>
+    </tr>
+    <tr>
+      <td>user.timezone</td>
+      <td>Universal</td>
+    </tr>
+  </tbody>
+  <tfoot></tfoot>
+</table>
+
+### Classpath Entries
+
+<table class="table table-bordered table-striped table-condensed sortable table-fixed">
+  <thead>
+    <tr>
+      <th width="50.0%" class="">Resource</th>
+      <th width="50.0%" class=" sorttable_sorted">Source<span id="sorttable_sortfwdind">&nbsp;▾</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span><a class="smarterwiki-linkify" href="http://10.168.49.221:42810/jars/hierarchical-clustering_2.10-0.0.1.jar">http://10.168.49.221:42810/jars/hierarchical-clustering_2.10-0.0.1.jar</a></span></td>
+      <td>Added By User</td>
+    </tr>
+    <tr>
+      <td>/root/ephemeral-hdfs/conf</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/ephemeral-hdfs/conf</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/spark/conf</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/spark/lib/datanucleus-api-jdo-3.2.1.jar</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/spark/lib/datanucleus-core-3.2.2.jar</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/spark/lib/datanucleus-rdbms-3.2.1.jar</td>
+      <td>System Classpath</td>
+    </tr>
+    <tr>
+      <td>/root/spark/lib/spark-assembly-1.1.0-hadoop2.0.0-mr1-cdh4.2.0.jar</td>
+      <td>System Classpath</td>
+    </tr>
+  </tbody>
+  <tfoot></tfoot>
+</table>
