@@ -16,6 +16,7 @@ object HierarchicalClusteringApp {
     val numClusters = args(4).toInt
     val numPartitions = args(5).toInt
 
+    val appName = s"${this.getClass().getSimpleName},maxCores,${maxCores},rows:${rows}:dim:${dimension},"
     val conf = new SparkConf()
         .setAppName("hierarchical clustering")
         .setMaster(master)
@@ -32,7 +33,8 @@ object HierarchicalClusteringApp {
       "rows" -> rows.toString,
       "dimension" -> dimension.toString,
       "numClusters" -> numClusters.toString,
-      "numPartitions" -> numPartitions.toString
+      "numPartitions" -> numPartitions.toString,
+      "maxCores" -> maxCores.toString
     )
     println(JSONObject(result).toString())
   }
