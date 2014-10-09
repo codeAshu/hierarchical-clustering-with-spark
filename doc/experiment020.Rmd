@@ -9,8 +9,8 @@ I run the hierarchical clustering application on EC2.
     - Cores: 32
     - Memory: 144GB
 - # of Slaves: 5
-    - Total Cores: 64
-    - Total Memory: 239GB
+    - Total Cores: 160
+    - Total Memory: 1220GB
 
 ### Experimental Setup
 

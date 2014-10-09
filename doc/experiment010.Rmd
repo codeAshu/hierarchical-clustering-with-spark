@@ -39,7 +39,7 @@ result.cast <- dcast(result, numClusters ~ rows, value.var="sec", sum)
 x <- result2.cast[, 1]
 y <- result2.cast[, 2:4]
 matplot(x, y
-        , xlab="# Clusters"
+        , xlab="# Rows"
         , ylab="Training Execution Time [sec]"
         , pch=1:(length(y)), col=rainbow(length(y)), type="o")
 grid()
