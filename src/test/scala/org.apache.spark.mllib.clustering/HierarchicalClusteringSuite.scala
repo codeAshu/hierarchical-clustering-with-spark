@@ -26,9 +26,9 @@ import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
 import scala.collection.SortedMap
 
-class HierarichicalClusteringConfSuite extends FunSuite {
+class HierarchicalClusteringConfSuite extends FunSuite {
 
-  test("constract a new instance without parameters") {
+  test("construct a new instance without parameters") {
     val conf = new HierarchicalClusteringConf()
     assert(conf.getNumClusters === 100)
     assert(conf.getSubIterations === 20)
@@ -71,7 +71,7 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
   test("train method called by the companion object") {
     val numClusters = 2
     val model = HierarchicalClustering.train(data, numClusters)
-    assert(model.getClass.getSimpleName.toString === "HierarchicalClusteringModel")
+    assert(model.getClass.getSimpleName === "HierarchicalClusteringModel")
   }
 
   test("train") {
@@ -82,7 +82,7 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getStats() != None)}
   }
 
-  test("train with a random dataset") {
+  test("train with a random data set") {
     val data = sc.parallelize((1 to 100).map(i => Vectors.dense(Math.random(), Math.random())), 2)
     val conf = new HierarchicalClusteringConf().setNumClusters(10)
     val app = new HierarchicalClustering(conf)
@@ -91,7 +91,7 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getStats() != None)}
   }
 
-  test("should stop if there is no splitable cluster") {
+  test("should stop if there is no splittable cluster") {
     val data = sc.parallelize((1 to 100).map(i => Vectors.dense(0.0, 0.0)), 1)
     val conf = new HierarchicalClusteringConf().setNumClusters(5)
     val app = new HierarchicalClustering(conf)
@@ -128,8 +128,8 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
 
     val clusters = model.getClusters()
     assert(clusters.size === 5)
-    assert(clusters.filter(_.depth() == 2).size === 3)
-    assert(clusters.filter(_.depth() == 3).size === 2)
+    assert(clusters.count(_.depth() == 2) === 3)
+    assert(clusters.count(_.depth() == 3) === 2)
 
     val nodes = model.clusterTree.toSeq()
     // depth: 0
@@ -141,8 +141,8 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     assert(subNodes.size === 2)
     assert(subNodes.apply(0).getDataSize() === 900)
     assert(subNodes.apply(1).getDataSize() === 1100)
-    assert(subNodes.apply(0).center === Vectors.dense(3.2222222222222223,4.222222222222222,5.222222222222222))
-    assert(subNodes.apply(1).center === Vectors.dense(5.545454545454546,6.545454545454546,7.545454545454546))
+    assert(subNodes.apply(0).center === Vectors.dense(3.2222222222222223, 4.222222222222222, 5.222222222222222))
+    assert(subNodes.apply(1).center === Vectors.dense(5.545454545454546, 6.545454545454546, 7.545454545454546))
     assert(subNodes.apply(0).isLeaf() === false)
     assert(subNodes.apply(1).isLeaf() === false)
     // depth: 2
@@ -151,10 +151,10 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     assert(subNodes.apply(1).getDataSize() === 400)
     assert(subNodes.apply(2).getDataSize() === 500)
     assert(subNodes.apply(3).getDataSize() === 600)
-    assert(subNodes.apply(0).center === Vectors.dense(2.6,3.6,4.6))
-    assert(subNodes.apply(1).center === Vectors.dense(4.0,5.0,6.0))
-    assert(subNodes.apply(2).center === Vectors.dense(5.0,6.0,7.0))
-    assert(subNodes.apply(3).center === Vectors.dense(6.0,7.0,8.0))
+    assert(subNodes.apply(0).center === Vectors.dense(2.6, 3.6, 4.6))
+    assert(subNodes.apply(1).center === Vectors.dense(4.0, 5.0, 6.0))
+    assert(subNodes.apply(2).center === Vectors.dense(5.0, 6.0, 7.0))
+    assert(subNodes.apply(3).center === Vectors.dense(6.0, 7.0, 8.0))
     assert(subNodes.apply(0).isLeaf() === false)
     assert(subNodes.apply(1).isLeaf() === true)
     assert(subNodes.apply(2).isLeaf() === true)
@@ -165,8 +165,8 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     assert(subNodes.size === 2)
     assert(subNodes.apply(0).getDataSize() === 200)
     assert(subNodes.apply(1).getDataSize() === 300)
-    assert(subNodes.apply(0).center === Vectors.dense(2.0,3.0,4.0))
-    assert(subNodes.apply(1).center === Vectors.dense(3.0,4.0,5.0))
+    assert(subNodes.apply(0).center === Vectors.dense(2.0, 3.0, 4.0))
+    assert(subNodes.apply(1).center === Vectors.dense(3.0, 4.0, 5.0))
     assert(subNodes.apply(0).isLeaf() === true)
     assert(subNodes.apply(1).isLeaf() === true)
   }
@@ -309,14 +309,14 @@ class ClusterVarianceStatsSuite extends FunSuite with LocalSparkContext {
 
   test("the sum of variance should be 0.0 with all same records") {
     val data = sc.parallelize((1 to 99).map(i => Vectors.dense(1.0, 2.0)), 4)
-    val stats = new  ClusterVarianceStats()
+    val stats = new ClusterVarianceStats()
     val variance = stats.calculateVariance(data)
     assert(variance === 0.0)
   }
 
   test("the sum of variance should be 0.0 with one record") {
     val data = sc.parallelize(Seq(Vectors.dense(1.0, 2.0, 3.0)), 1)
-    val stats = new  ClusterVarianceStats()
+    val stats = new ClusterVarianceStats()
     val variance = stats.calculateVariance(data)
     assert(variance === 0.0)
   }
@@ -328,14 +328,14 @@ class ClusterVarianceStatsSuite extends FunSuite with LocalSparkContext {
       Vectors.dense(7.0), Vectors.dense(8.0), Vectors.dense(9.0)
     )
     val data = sc.parallelize(seedData, 3)
-    val stats = new  ClusterVarianceStats()
+    val stats = new ClusterVarianceStats()
     val variance = stats.calculateVariance(data)
     assert(variance === 7.5)
   }
 
   test("the variance should be 8332500") {
     val data = sc.parallelize((1 to 9999).map(Vectors.dense(_)), 4)
-    val stats = new  ClusterVarianceStats()
+    val stats = new ClusterVarianceStats()
     val variance = stats.calculateVariance(data)
     assert(variance === 8332500)
   }

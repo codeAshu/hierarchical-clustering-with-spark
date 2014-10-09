@@ -22,9 +22,9 @@ import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 
 /**
- * the configuration for a hierarchical clusterint algorithm
+ * the configuration for a hierarchical clustering algorithm
  *
- * @param strategy the strategy to select the next splited node
+ * @param strategy the strategy to select the next splitted node
  * @param numClusters the number of clusters you want
  * @param subIterations the number of iterations at digging
  * @param epsilon the threshold to stop the sub-iterations
@@ -84,7 +84,7 @@ class HierarchicalClusteringConf(
 class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Serializable {
 
   /**
-   * Constracts with the default configuration
+   * Constructs with the default configuration
    */
   def this() = this(new HierarchicalClusteringConf())
 
@@ -138,7 +138,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    */
   private[clustering] def nextNode(clusterTree: ClusterTree): ClusterTree = {
     // select the max value stats of clusters which are leafs of a tree
-    clusterTree.toSeq().filter(_.isSplitable()).maxBy(_.getStats())
+    clusterTree.toSeq().filter(_.isSplittable()).maxBy(_.getStats())
   }
 
   /**
@@ -146,7 +146,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    */
   private[clustering] def updateAllStats(tree: ClusterTree) {
     val strategy = this.conf.getStrategy()
-    val trees = tree.toSeq().filter(_.isSplitable()).filter(_.getStats() == None)
+    val trees = tree.toSeq().filter(_.isSplittable()).filter(_.getStats() == None)
     strategy(trees).foreach { case (tree, stats) => tree.setStats(Some(stats))}
   }
 
@@ -231,16 +231,16 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
 object HierarchicalClustering {
 
   /**
-   * Trains a hierarichical clustering model with the given data and the number of clusters
+   * Trains a hierarchical clustering model with the given data and the number of clusters
    *
    * NOTE: If there is no splittable cluster, however the number of clusters is
-   *       less than the given that, the clustering is stoppped
+   * less than the given that, the clustering is stopped
    *
    * @param data trained data
    * @param numClusters the maximum number of clusters you want
    * @return a hierarchical clustering model
    *
-   * TODO: The other parameters for the hierarichical clustering will be applied
+   *         TODO: The other parameters for the hierarchical clustering will be applied
    */
   def train(data: RDD[Vector], numClusters: Int): HierarchicalClusteringModel = {
     val conf = new HierarchicalClusteringConf()
@@ -348,7 +348,7 @@ class ClusterTree(
    *
    * @return the number of the clusters in the tree
    */
-  def treeSize(): Int = this.toSeq().filter(_.isLeaf()).size
+  def treeSize(): Int = this.toSeq().count(_.isLeaf())
 
   /**
    * Gets the data size of the cluster
@@ -373,14 +373,14 @@ class ClusterTree(
 
   def getStats(): Option[Double] = this.stats
 
-  def isLeaf(): Boolean = (this.children.size == 0)
+  def isLeaf(): Boolean = this.children.size == 0
 
   /**
-   * The flag that the cluster is splitable
+   * The flag that the cluster is splittable
    *
-   * @return true is splitable
+   * @return true is splittable
    */
-  def isSplitable(): Boolean = (this.isLeaf() && this.getDataSize() >= 2)
+  def isSplittable(): Boolean = this.isLeaf() && this.getDataSize() >= 2
 }
 
 /**
@@ -410,7 +410,7 @@ object ClusterTree {
  * This trait class is use for the condition to split the cluster in training
  */
 trait ClusterTreeStats
-    extends Function1[Seq[ClusterTree], Map[ClusterTree, Double]] with Serializable{
+    extends Function1[Seq[ClusterTree], Map[ClusterTree, Double]] with Serializable {
   def apply(clusterTrees: Seq[ClusterTree]): Map[ClusterTree, Double]
 }
 
@@ -442,7 +442,7 @@ class ClusterVarianceStats private (private var dimension: Option[Int]) extends 
    * @return the sum of the variances
    */
   def calculateVariance(data: RDD[Vector]): Double = {
-    if (this.dimension == None) this.dimension = Some(data.first().size)
+    if(this.dimension == None) this.dimension = Some(data.first().size)
     val zeroVector = () => Vectors.zeros(this.dimension.get).toBreeze
 
     // mapper for each partition
@@ -464,8 +464,8 @@ class ClusterVarianceStats private (private var dimension: Option[Int]) extends 
       case ((nA, sumA, sumOfSquareA), (nB, sumB, sumOfSquareB)) =>
         val nAB = nA + nB
         val sumAB = sumA + sumB
-        val sumbOfSquareAB = sumOfSquareA + sumOfSquareB
-        (nAB, sumAB, sumbOfSquareAB)
+        val sumOfSquareAB = sumOfSquareA + sumOfSquareB
+        (nAB, sumAB, sumOfSquareAB)
     }
 
     // calculate the sum of the variances of each element
