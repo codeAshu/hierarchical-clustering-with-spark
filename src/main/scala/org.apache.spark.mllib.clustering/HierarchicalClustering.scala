@@ -263,6 +263,10 @@ class HierarchicalClusteringModel private (
   var isTrained: Boolean) extends Serializable {
 
   def this(clusterTree: ClusterTree) = this(clusterTree, 0, false)
+
+  def getClusters(): Seq[ClusterTree] = {
+    this.clusterTree.toSeq().filter(_.isLeaf()).sortWith((t1, t2) => t1.depth() < t2.depth())
+  }
 }
 
 /**
@@ -285,6 +289,17 @@ class ClusterTree(
 
   def this(data: RDD[Vector], center: Vector) =
     this(data, center, None, None, List.empty[ClusterTree], None)
+
+  override def toString(): String = {
+    Array(
+      s"depth:${this.depth()}",
+      s"hashCode:${this.hashCode()}",
+      s"dataSize:${this.dataSize.get.toInt}",
+      s"isLeaf:${this.isLeaf()}",
+      s"subTree:${this.children.map(_.hashCode())}",
+      s"center:${this.center}"
+    ).mkString(", ")
+  }
 
   /**
    * Converts the tree into Seq class

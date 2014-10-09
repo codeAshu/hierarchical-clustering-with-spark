@@ -17,11 +17,14 @@
 
 package org.apache.spark.mllib.clustering
 
+import breeze.linalg.{DenseVector => BDV, Vector => BV, norm => breezeNorm}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.random.UniformGenerator
 import org.apache.spark.rdd.RDD
 import org.apache.spark.util.LocalSparkContext
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
+
+import scala.collection.SortedMap
 
 class HierarichicalClusteringConfSuite extends FunSuite {
 
@@ -103,6 +106,69 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
       val app = new HierarchicalClustering(conf)
       app.train(data)
     }
+  }
+
+  test("the generated data should match its seed centers with the same number of clusters") {
+    def sortedWithNorm(seq: Seq[ClusterTree]): Seq[ClusterTree] = {
+      seq.sortWith { (t1, t2) =>
+        breezeNorm(t1.center.toBreeze, 2.0) < breezeNorm(t2.center.toBreeze, 2.0)
+      }
+    }
+
+    val seeds = SortedMap[Int, Vector](
+      200 -> Vectors.dense(2.0, 3.0, 4.0), 300 -> Vectors.dense(3.0, 4.0, 5.0),
+      400 -> Vectors.dense(4.0, 5.0, 6.0), 500 -> Vectors.dense(5.0, 6.0, 7.0),
+      600 -> Vectors.dense(6.0, 7.0, 8.0)
+    )
+    val seedData = seeds.flatMap { case (count, vector) => (1 to count).map(i => vector).toIterable}
+    val data = sc.parallelize(seedData.toSeq)
+    val conf = new HierarchicalClusteringConf().setNumClusters(5).setRandomSeed(1)
+    val app = new HierarchicalClustering(conf)
+    val model = app.train(data)
+
+    val clusters = model.getClusters()
+    assert(clusters.size === 5)
+    assert(clusters.filter(_.depth() == 2).size === 3)
+    assert(clusters.filter(_.depth() == 3).size === 2)
+
+    val nodes = model.clusterTree.toSeq()
+    // depth: 0
+    val root = nodes.filter(_.depth() == 0).apply(0)
+    assert(root.getDataSize() === 2000)
+    assert(root.center === Vectors.dense(4.5, 5.5, 6.5))
+    // depth: 1
+    var subNodes = sortedWithNorm(nodes.filter(_.depth() == 1))
+    assert(subNodes.size === 2)
+    assert(subNodes.apply(0).getDataSize() === 900)
+    assert(subNodes.apply(1).getDataSize() === 1100)
+    assert(subNodes.apply(0).center === Vectors.dense(3.2222222222222223,4.222222222222222,5.222222222222222))
+    assert(subNodes.apply(1).center === Vectors.dense(5.545454545454546,6.545454545454546,7.545454545454546))
+    assert(subNodes.apply(0).isLeaf() === false)
+    assert(subNodes.apply(1).isLeaf() === false)
+    // depth: 2
+    subNodes = sortedWithNorm(nodes.filter(_.depth() == 2))
+    assert(subNodes.apply(0).getDataSize() === 500)
+    assert(subNodes.apply(1).getDataSize() === 400)
+    assert(subNodes.apply(2).getDataSize() === 500)
+    assert(subNodes.apply(3).getDataSize() === 600)
+    assert(subNodes.apply(0).center === Vectors.dense(2.6,3.6,4.6))
+    assert(subNodes.apply(1).center === Vectors.dense(4.0,5.0,6.0))
+    assert(subNodes.apply(2).center === Vectors.dense(5.0,6.0,7.0))
+    assert(subNodes.apply(3).center === Vectors.dense(6.0,7.0,8.0))
+    assert(subNodes.apply(0).isLeaf() === false)
+    assert(subNodes.apply(1).isLeaf() === true)
+    assert(subNodes.apply(2).isLeaf() === true)
+    assert(subNodes.apply(3).isLeaf() === true)
+    // depth: 3
+    subNodes = sortedWithNorm(nodes.filter(_.depth() == 3))
+    subNodes.foreach(println)
+    assert(subNodes.size === 2)
+    assert(subNodes.apply(0).getDataSize() === 200)
+    assert(subNodes.apply(1).getDataSize() === 300)
+    assert(subNodes.apply(0).center === Vectors.dense(2.0,3.0,4.0))
+    assert(subNodes.apply(1).center === Vectors.dense(3.0,4.0,5.0))
+    assert(subNodes.apply(0).isLeaf() === true)
+    assert(subNodes.apply(1).isLeaf() === true)
   }
 
   test("takeInitCenters") {
