@@ -188,8 +188,8 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     var numIter = 0
     var error = Double.MaxValue
     while (error > conf.getEpsilon() && numIter < conf.getSubIterations()) {
-
       // finds the closest center of each point
+      data.sparkContext.broadcast(finder)
       val closest = data.mapPartitions { iter =>
         val map = scala.collection.mutable.Map.empty[Int, (BV[Double], Int)]
         iter.foreach { point =>
