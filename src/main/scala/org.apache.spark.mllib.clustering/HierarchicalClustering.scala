@@ -179,8 +179,6 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     var centers = takeInitCenters(data)
     var finder: ClosestCenterFinder = new EuclideanClosestCenterFinder(centers)
 
-    def relativeError(o: Double, n: Double): Double = Math.abs((o - n) / o)
-    def totalStats(array: Array[Vector]): Double = array.map(v => breezeNorm(v.toBreeze, 2.0)).sum
 
     // If the following conditions are satisfied, the iteration is stopped
     //   1. the relative error is less than that of configuration
@@ -210,7 +208,9 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         Vectors.fromBreeze(center :/ counts.toDouble)
       }.toArray
 
-      error = relativeError(totalStats(centers), totalStats(newCenters))
+      val normSum = centers.map(v => breezeNorm(v.toBreeze, 2.0)).sum
+      val newNormSum = newCenters.map(v => breezeNorm(v.toBreeze, 2.0)).sum
+      error = Math.abs((normSum - newNormSum) / normSum)
       centers = newCenters
       numIter += 1
       finder = new EuclideanClosestCenterFinder(centers)
