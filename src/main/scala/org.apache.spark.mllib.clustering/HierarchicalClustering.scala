@@ -107,8 +107,6 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         && model.clusterTree.treeSize() < this.conf.getNumClusters
         && totalVariance > newTotalVariance) {
       subNodes = split(node.get).map(statsUpdater(_))
-      println(s"DEBUG: treeSize:${model.clusterTree.treeSize()}, totalVariance:${totalVariance}, newTotalVariance:${newTotalVariance}")
-      println(s"DEBUG: subNodes.size:${subNodes.size}")
 
       // add the sub nodes in to the tree
       // if the sum of variance of sub nodes is greater than that of pre-splitted node
@@ -167,7 +165,6 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     val data = clusterTree.data
     var centers = takeInitCenters(clusterTree.center)
     var finder: ClosestCenterFinder = new EuclideanClosestCenterFinder(centers)
-    println(s"DEBUG: # centers:${centers.size} in split")
 
     // If the following conditions are satisfied, the iteration is stopped
     //   1. the relative error is less than that of configuration
@@ -283,6 +280,7 @@ class ClusterTree(
       s"variance:${this.variance.get}",
       s"parent:${this.parent.hashCode()}",
       s"children:${this.children.map(_.hashCode())}",
+      s"isLeaf:${this.isLeaf()}",
       s"isVisited:${this.isVisited}"
     )
     elements.mkString(", ")

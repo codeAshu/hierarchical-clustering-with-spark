@@ -43,7 +43,7 @@ object HierarchicalClusteringApp {
 
   def generateData(sc: SparkContext, numPartitions: Int, rows: Int, dim: Int): RDD[Vector] = {
     sc.parallelize((1 to rows.toInt), numPartitions).map { i =>
-      Vectors.dense((1 to dim).map(i => i + Math.random()).toArray)
+      Vectors.dense((1 to dim).map(j => i + Math.random()).toArray)
     }
   }
 }
