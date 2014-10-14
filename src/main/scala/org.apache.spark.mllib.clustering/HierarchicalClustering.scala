@@ -108,7 +108,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         && totalVariance > newTotalVariance) {
       subNodes = split(node.get).map(statsUpdater(_))
       println(s"DEBUG: treeSize:${model.clusterTree.treeSize()}, totalVariance:${totalVariance}, newTotalVariance:${newTotalVariance}")
-      println(s"DEBUG: subNodes.size:${subNodes}")
+      println(s"DEBUG: subNodes.size:${subNodes.size}")
 
       // add the sub nodes in to the tree
       // if the sum of variance of sub nodes is greater than that of pre-splitted node
