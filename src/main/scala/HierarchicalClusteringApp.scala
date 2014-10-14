@@ -37,6 +37,7 @@ object HierarchicalClusteringApp {
       "maxCores" -> maxCores.toString
     )
     println(JSONObject(result).toString())
+    model.clusterTree.toSeq().foreach(tree => println(tree.toString()))
   }
 
 

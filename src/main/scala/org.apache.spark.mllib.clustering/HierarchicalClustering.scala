@@ -274,6 +274,15 @@ class ClusterTree(
   def this(data: RDD[Vector], center: Vector) =
     this(data, center, None, None, List.empty[ClusterTree], None, false)
 
+  override def toString(): String = {
+    s"hashCode:${this.hashCode()}" +
+        s"dataSize:${this.dataSize.get}" +
+        s"variance:${this.variance.get}" +
+        s"parent:${this.parent.hashCode()}" +
+        s"children:${this.children.map(_.hashCode())}" +
+        s"isVisited:${this.isVisited}"
+  }
+
   /**
    * Converts the tree into Seq class
    * the sub nodes are recursively expanded
