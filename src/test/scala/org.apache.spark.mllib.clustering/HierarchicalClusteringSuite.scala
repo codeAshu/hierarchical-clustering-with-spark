@@ -129,8 +129,8 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     val relativeError1 = (data(1).toBreeze - initVectors(0).toBreeze).:/(data(1).toBreeze)
     val relativeError2 = (initVectors(1).toBreeze - data(1).toBreeze).:/(data(1).toBreeze)
     assert(initVectors.size === 2)
-    assert(relativeError1.forall(_ <= 0.1))
-    assert(relativeError2.forall(_ <= 0.1))
+    assert(relativeError1.forall(_ <= 0.2))
+    assert(relativeError2.forall(_ <= 0.2))
   }
 }
 

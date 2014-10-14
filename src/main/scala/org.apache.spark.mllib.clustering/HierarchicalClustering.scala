@@ -153,8 +153,8 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    */
   private[clustering] def takeInitCenters(centers: Vector): Array[Vector] = {
     Array(
-      centers.toBreeze.map(elm => elm - Math.random() * (elm / 10)),
-      centers.toBreeze.map(elm => elm + Math.random() * (elm / 10))
+      centers.toBreeze.map(elm => elm - Math.random() * (elm / 5)),
+      centers.toBreeze.map(elm => elm + Math.random() * (elm / 5))
     ).map(Vectors.fromBreeze)
   }
 
