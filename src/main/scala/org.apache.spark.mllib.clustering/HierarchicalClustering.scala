@@ -98,7 +98,6 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
 
     var node: Option[ClusterTree] = Some(model.clusterTree)
     statsUpdater(node.get)
-    var subNodes = split(node.get).map(statsUpdater(_))
 
     // If the followed conditions are satisfied, and then stop the training.
     //   1. There is no splittable cluster
@@ -109,7 +108,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     while (node != None
         && model.clusterTree.treeSize() < this.conf.getNumClusters
         && totalVariance > newTotalVariance) {
-      subNodes = split(node.get).map(statsUpdater(_))
+      var subNodes = split(node.get).map(statsUpdater(_))
 
       // add the sub nodes in to the tree
       // if the sum of variance of sub nodes is greater than that of pre-splitted node
@@ -204,6 +203,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     val closest = data.map(point => (finder(point), point))
     val nodes = centers.zipWithIndex.map { case (center, i) =>
       val subData = closest.filter(_._1 == i).map(_._2)
+      subData.cache
       new ClusterTree(Vectors.fromBreeze(center), subData)
     }
     nodes
