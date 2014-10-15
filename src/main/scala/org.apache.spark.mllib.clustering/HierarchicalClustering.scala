@@ -175,7 +175,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     while (error > conf.getEpsilon() && numIter < conf.getSubIterations()) {
       // finds the closest center of each point
       data.sparkContext.broadcast(finder)
-      val closest = data.mapPartitions { iter =>
+      val pointStats = data.mapPartitions { iter =>
         val map = scala.collection.mutable.Map.empty[Int, (BV[Double], Int)]
         iter.foreach { point =>
           val idx = finder(point)
@@ -183,20 +183,15 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
           map(idx) = (sumBV + point.toBreeze, n + 1)
         }
         map.toIterator
-      }
-      // calculates the statistics for splitting of each cluster
-      val pointStats = closest.reduceByKey { case ((p1, n1), (p2, n2)) =>
-        (p1 + p2, n1 + n2)
-      }
+      }.reduceByKey { case ((p1, n1), (p2, n2)) => (p1 + p2, n1 + n2)}.collect()
       // creates the new centers
       val newCenters = pointStats.map { case ((idx: Int, (center: BV[Double], counts: Int))) =>
         Vectors.fromBreeze(center :/ counts.toDouble)
       }
-
       val normSum = centers.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       val newNormSum = newCenters.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       error = Math.abs((normSum - newNormSum) / normSum)
-      centers = newCenters.collect()
+      centers = newCenters
       numIter += 1
       finder = new EuclideanClosestCenterFinder(centers)
     }
