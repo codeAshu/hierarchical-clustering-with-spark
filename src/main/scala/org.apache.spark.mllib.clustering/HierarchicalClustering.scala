@@ -29,14 +29,16 @@ import org.apache.spark.rdd.RDD
  * @param subIterations the number of iterations at digging
  * @param epsilon the threshold to stop the sub-iterations
  * @param randomSeed uses in sampling data for initializing centers in each sub iterations
+ * @param randomRange the range coefficient to generate random points in each clustering step
  */
 class HierarchicalClusteringConf(
   private var numClusters: Int,
   private var subIterations: Int,
   private var epsilon: Double,
-  private var randomSeed: Int) extends Serializable {
+  private var randomSeed: Int,
+  private[mllib] var randomRange: Double) extends Serializable {
 
-  def this() = this(100, 20, 10E-6, 1)
+  def this() = this(100, 20, 10E-6, 1, 0.1)
 
   def setNumClusters(numClusters: Int): this.type = {
     this.numClusters = numClusters
@@ -154,8 +156,8 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    */
   private[clustering] def takeInitCenters(centers: Vector): Array[Vector] = {
     Array(
-      centers.toBreeze.map(elm => elm - Math.random() * (elm / 5)),
-      centers.toBreeze.map(elm => elm + Math.random() * (elm / 5))
+      centers.toBreeze.map(elm => elm - Math.random() * elm * this.conf.randomRange),
+      centers.toBreeze.map(elm => elm + Math.random() * elm * this.conf.randomRange)
     ).map(Vectors.fromBreeze)
   }
 
@@ -176,6 +178,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
       // finds the closest center of each point
       data.sparkContext.broadcast(finder)
       val newCenters = data.mapPartitions { iter =>
+        // calculate the accumulation of the all point in a partition and count the rows
         val map = scala.collection.mutable.Map.empty[Int, (BV[Double], Int)]
         iter.foreach { point =>
           val idx = finder(point)
@@ -184,10 +187,12 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         }
         map.toIterator
       }.reduceByKeyLocally {
+        // sum the accumulation and the count in the all partition
         case ((p1, n1), (p2, n2)) => (p1 + p2, n1 + n2)
       }.map { case ((idx: Int, (center: BV[Double], counts: Int))) =>
         Vectors.fromBreeze(center :/ counts.toDouble)
       }
+
       val normSum = centers.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       val newNormSum = newCenters.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       error = Math.abs((normSum - newNormSum) / normSum)
