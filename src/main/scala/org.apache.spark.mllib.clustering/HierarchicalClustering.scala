@@ -18,6 +18,7 @@
 package org.apache.spark.mllib.clustering
 
 import breeze.linalg.{DenseVector => BDV, Vector => BV, norm => breezeNorm}
+import org.apache.spark.SparkContext._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 
@@ -184,20 +185,18 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         map.toIterator
       }
       // calculates the statistics for splitting of each cluster
-      val pointStats = scala.collection.mutable.Map.empty[Int, (BV[Double], Int)]
-      closest.collect().foreach { case (key, (point, count)) =>
-        val (sumBV, n) = pointStats.get(key).getOrElse((BV.zeros[Double](point.size), 0))
-        pointStats(key) = (sumBV + point, n + count)
+      val pointStats = closest.reduceByKey { case ((p1, n1), (p2, n2)) =>
+        (p1 + p2, n1 + n2)
       }
       // creates the new centers
       val newCenters = pointStats.map { case ((idx: Int, (center: BV[Double], counts: Int))) =>
         Vectors.fromBreeze(center :/ counts.toDouble)
-      }.toArray
+      }
 
       val normSum = centers.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       val newNormSum = newCenters.map(v => breezeNorm(v.toBreeze, 2.0)).sum
       error = Math.abs((normSum - newNormSum) / normSum)
-      centers = newCenters
+      centers = newCenters.collect()
       numIter += 1
       finder = new EuclideanClosestCenterFinder(centers)
     }
@@ -383,7 +382,7 @@ object ClusterTree {
     val pointStat = data.mapPartitions { iter =>
       val stat = iter.map(v => (v.toBreeze, 1)).reduce((a, b) => (a._1 + b._1, a._2 + b._2))
       Iterator(stat)
-    }.collect().reduce((a, b) => (a._1 + b._1, a._2 + b._2))
+    }.reduce((a, b) => (a._1 + b._1, a._2 + b._2))
     val center = Vectors.fromBreeze(pointStat._1.:/(pointStat._2.toDouble))
 
     new ClusterTree(data, center)
