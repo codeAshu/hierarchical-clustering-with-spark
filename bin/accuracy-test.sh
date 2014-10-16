@@ -6,7 +6,7 @@ SPARK_SUBMIT=${HOME}/spark/bin/spark-submit
 APP_NAME="AccuracyTestApp"
 
 ## paramters
-__MAX_CPU_CORES_LIST="64"
+__MAX_CPU_CORES_LIST="160"
 __NUM_CLUSTERS_LIST="5 10 20 50 100"
 __DIMENSION_LIST="5 10 20 50 100 200 1000 10000"
 
@@ -19,7 +19,7 @@ do
   do
     for __MAX_CPU_CORES in $__MAX_CPU_CORES_LIST
     do
-      __NUM_PARTITIONS=$(($__MAX_CPU_CORES * 2))
+      __NUM_PARTITIONS=$(($__MAX_CPU_CORES * 1))
       $SPARK_SUBMIT  \
         --master "$__SPARK_MASTER" \
         --class $APP_NAME \
