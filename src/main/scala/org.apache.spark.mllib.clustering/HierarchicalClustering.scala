@@ -153,11 +153,11 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
   /**
    * Takes the initial centers for bi-sect k-means
    */
-  private[clustering] def takeInitCenters(centers: Vector): Array[Vector] = {
+  private[clustering] def takeInitCenters(centers: Vector): Array[BV[Double]] = {
     Array(
       centers.toBreeze.map(elm => elm - Math.random() * elm * this.conf.randomRange),
       centers.toBreeze.map(elm => elm + Math.random() * elm * this.conf.randomRange)
-    ).map(Vectors.fromBreeze(_))
+    )
   }
 
   /**
@@ -182,7 +182,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         iter.foreach { point =>
           val idx = finder(point)
           val (sumBV, n) = map.get(idx).getOrElse((BV.zeros[Double](point.size), 0))
-          map(idx) = (sumBV + point.toBreeze, n + 1)
+          map(idx) = (sumBV + point, n + 1)
         }
         map.toIterator
       }.reduceByKeyLocally {
@@ -192,10 +192,10 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
         center :/ counts.toDouble
       }
 
-      val normSum = centers.map(v => breezeNorm(v.toBreeze, 2.0)).sum
+      val normSum = centers.map(v => breezeNorm(v, 2.0)).sum
       val newNormSum = newCenters.map(v => breezeNorm(v, 2.0)).sum
       error = Math.abs((normSum - newNormSum) / normSum)
-      centers = newCenters.map(Vectors.fromBreeze(_)).toArray
+      centers = newCenters.toArray
       numIter += 1
       finder = new EuclideanClosestCenterFinder(centers)
     }
@@ -204,7 +204,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     val nodes = centers.zipWithIndex.map { case (center, i) =>
       val subData = closest.filter(_._1 == i).map(_._2)
       subData.cache
-      new ClusterTree(center, subData)
+      new ClusterTree(Vectors.fromBreeze(center), subData)
     }
     nodes
   }
@@ -262,14 +262,14 @@ class HierarchicalClusteringModel private (
  */
 class ClusterTree(
   val center: Vector,
-  val data: RDD[Vector],
+  private[mllib] val data: RDD[BV[Double]],
   private[mllib] var variance: Option[Double],
   private[mllib] var dataSize: Option[Long],
   private[mllib] var children: List[ClusterTree],
   private[mllib] var parent: Option[ClusterTree],
   private[mllib] var isVisited: Boolean) extends Serializable {
 
-  def this(center: Vector, data: RDD[Vector]) =
+  def this(center: Vector, data: RDD[BV[Double]]) =
     this(center, data, None, None, List.empty[ClusterTree], None, false)
 
   override def toString(): String = {
@@ -379,13 +379,14 @@ object ClusterTree {
    */
   def fromRDD(data: RDD[Vector]): ClusterTree = {
     // calculates its center
-    val pointStat = data.mapPartitions { iter =>
-      val stat = iter.map(v => (v.toBreeze, 1)).reduce((a, b) => (a._1 + b._1, a._2 + b._2))
+    val bData = data.map(_.toBreeze)
+    val pointStat = bData.mapPartitions { iter =>
+      val stat = iter.map(v => (v, 1)).reduce((a, b) => (a._1 + b._1, a._2 + b._2))
       Iterator(stat)
     }.reduce((a, b) => (a._1 + b._1, a._2 + b._2))
     val center = Vectors.fromBreeze(pointStat._1.:/(pointStat._2.toDouble))
 
-    new ClusterTree(center, data)
+    new ClusterTree(center, bData)
   }
 }
 
@@ -415,7 +416,7 @@ class ClusterTreeStatsUpdater private (private var dimension: Option[Int])
       var sum = zeroVector()
       var sumOfSquares = zeroVector()
       val diff = zeroVector()
-      iter.map(_.toBreeze).foreach { point =>
+      iter.foreach { point =>
         n += 1.0
         sum = sum + point
         sumOfSquares = sumOfSquares + point.map(Math.pow(_, 2.0))
