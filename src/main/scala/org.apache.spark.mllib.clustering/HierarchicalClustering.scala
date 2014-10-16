@@ -245,9 +245,44 @@ object HierarchicalClustering {
 class HierarchicalClusteringModel private (
   val clusterTree: ClusterTree,
   var trainTime: Int,
-  var isTrained: Boolean) extends Serializable {
+  var predictTime: Int,
+  var isTrained: Boolean,
+  private var centers: Option[Array[Vector]]) extends Serializable {
 
-  def this(clusterTree: ClusterTree) = this(clusterTree, 0, false)
+  def this(clusterTree: ClusterTree) = this(clusterTree, 0, 0, false, None)
+
+  /**
+   * Gets the centers
+   * @return the centers of clusters
+   */
+  def getCenters(): Array[Vector] = {
+    if (centers == None) {
+      val clusters = this.clusterTree.toSeq().filter(_.isLeaf())
+          .sortWith((a, b) => a.depth() < b.depth()).toArray
+      this.centers = Some(clusters.map(_.center))
+    }
+    this.centers.get
+  }
+
+  /**
+   * Predicts the closest cluster of each point
+   * @param data the data to predict
+   * @return predicted data
+   */
+  def predict(data: RDD[Vector]): RDD[(Int, Vector)] = {
+    val startTime = System.currentTimeMillis() // to measure the execution time
+
+    val centers = getCenters()
+    val finder = new EuclideanClosestCenterFinder(centers)
+    data.sparkContext.broadcast(centers)
+    data.sparkContext.broadcast(finder)
+    val predicted = data.map { point =>
+      val closestIdx = finder(point)
+      (closestIdx, point)
+    }
+    this.predictTime = (System.currentTimeMillis() - startTime).toInt
+    predicted
+  }
 }
 
 /**

@@ -47,6 +47,38 @@ class HierarichicalClusteringConfSuite extends FunSuite {
   }
 }
 
+class HierarchicalClusteringModelSuite
+    extends FunSuite with LocalSparkContext with BeforeAndAfterEach {
+
+  var data: RDD[Vector] = _
+  var app: HierarchicalClustering = _
+  var model: HierarchicalClusteringModel = _
+
+  override def beforeEach() {
+    val seed = (1 to 99).map { i =>
+      val label = Math.floor(i / 10)
+      val vector = Vectors.dense(label + Math.random(), label + Math.random(), label + Math.random())
+      (label, vector)
+    }
+    data = sc.parallelize(seed.map(_._2))
+
+    val conf = new HierarchicalClusteringConf().setNumClusters(10)
+    app = new HierarchicalClustering(conf)
+    model = app.train(data)
+  }
+
+  test("should get the array of ClusterTree") {
+    val centers = model.getCenters()
+    assert(centers.isInstanceOf[Array[Vector]])
+    assert(centers.size === 10)
+  }
+
+  test("should ") {
+    val predictedData = model.predict(data)
+    predictedData.foreach(println)
+  }
+}
+
 class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with LocalSparkContext {
 
   var vectors: Seq[Vector] = _
