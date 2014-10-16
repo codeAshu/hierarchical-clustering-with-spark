@@ -18,16 +18,17 @@
 package org.apache.spark.mllib.clustering
 
 import breeze.linalg.{DenseVector => BDV, Vector => BV, norm => breezeNorm}
+import org.apache.spark.mllib.linalg.Vector
 
-abstract class ClosestCenterFinder(val centers: Array[BV[Double]])
-    extends Function1[BV[Double], Int] with Serializable {
-  override def apply(v1: BV[Double]): Int
+abstract class ClosestCenterFinder(val centers: Array[Vector])
+    extends Function1[Vector, Int] with Serializable {
+  override def apply(v1: Vector): Int
 }
 
-class EuclideanClosestCenterFinder(centers: Array[BV[Double]]) extends ClosestCenterFinder(centers) {
+class EuclideanClosestCenterFinder(centers: Array[Vector]) extends ClosestCenterFinder(centers) {
 
-  override def apply(point: BV[Double]): Int = {
-    val distances = centers.map { center => breezeNorm(point - center, 2)}
+  override def apply(point: Vector): Int = {
+    val distances = centers.map { center => breezeNorm(point.toBreeze - center.toBreeze, 2)}
     distances.indexOf(distances.min)
   }
 }
