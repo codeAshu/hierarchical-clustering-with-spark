@@ -107,7 +107,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     var newTotalVariance = model.clusterTree.getVariance().get
     while (node != None
         && model.clusterTree.treeSize() < this.conf.getNumClusters
-        && totalVariance > newTotalVariance) {
+        && totalVariance >= newTotalVariance) {
       var subNodes = split(node.get).map(statsUpdater(_))
 
       // add the sub nodes in to the tree
