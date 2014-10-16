@@ -60,6 +60,8 @@ object AccuracyTestApp {
     println(s"==== Experiment Result ====")
     println(s"Total Rows: ${labeledData.count()}")
     println(s"# Clusters: ${numClusters}")
+    println(s"Centers:")
+    model.getCenters().foreach(center => println(s"  ${center.toArray.mkString(",")}"))
     println(s"Dimension: ${dimension}")
     println(s"Train Time: ${model.trainTime} [msec]")
     println(s"Predict Time: ${model.predictTime} [msec]")
@@ -94,8 +96,9 @@ object AccuracyTestApp {
       }
     }
 
+    val random = new XORShiftRNG()
+    sc.broadcast(random)
     sc.parallelize(generateSeedSeq(exponent), numPartitions).map { i =>
-      val random = new XORShiftRNG()
       val seedArray = (1 to dim).map(j => j.toDouble + i.toDouble).toArray
       val seedVector = Vectors.dense(seedArray)
       val vector = Vectors.dense(seedArray.map(elm => elm + 0.01 * elm * random.nextGaussian()))
