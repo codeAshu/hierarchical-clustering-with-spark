@@ -21,6 +21,7 @@ import breeze.linalg.{DenseVector => BDV, Vector => BV, norm => breezeNorm}
 import org.apache.spark.SparkContext._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.util.random.XORShiftRandom
 
 /**
  * the configuration for a hierarchical clusterint algorithm
@@ -154,9 +155,11 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
    * Takes the initial centers for bi-sect k-means
    */
   private[clustering] def takeInitCenters(centers: Vector): Array[Vector] = {
+    val random = new XORShiftRandom()
+    random.setSeed(this.conf.getRandomSeed())
     Array(
-      centers.toBreeze.map(elm => elm - Math.random() * elm * this.conf.randomRange),
-      centers.toBreeze.map(elm => elm + Math.random() * elm * this.conf.randomRange)
+      centers.toBreeze.map(elm => elm - random.nextDouble() * elm * this.conf.randomRange),
+      centers.toBreeze.map(elm => elm + random.nextDouble() * elm * this.conf.randomRange)
     ).map(Vectors.fromBreeze(_))
   }
 
@@ -477,7 +480,7 @@ class ClusterTreeStatsUpdater private (private var dimension: Option[Int])
       case n if n > 1 => (sumOfSquares.:*(n) - (sum :* sum)) :/ (n * (n - 1.0))
       case _ => zeroVector()
     }
-    clusterTree.setVariance(Some(breezeNorm(variance, 2.0)))
+    clusterTree.setVariance(Some(variance.toArray.sum))
 
     clusterTree
   }

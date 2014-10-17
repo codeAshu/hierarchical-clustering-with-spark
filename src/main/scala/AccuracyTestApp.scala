@@ -66,7 +66,7 @@ object AccuracyTestApp {
         .map(_.swap).sortByKey().collect().foreach { case (count, closestIdx) =>
       val closestCluster = clusters(closestIdx)
       val vector = closestCluster.center
-      println(s"  Count: ${count}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.take(3).mkString(",")}...")
+      println(s"  Count: ${count}, Depth: ${closestCluster.depth()}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.take(3).mkString(",")}...")
     }
 
     println(s"== Seed Vectors and Their Rows: ")
