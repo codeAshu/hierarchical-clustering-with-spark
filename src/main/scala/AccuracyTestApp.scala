@@ -45,11 +45,12 @@ object AccuracyTestApp {
     val result = model.predict(labeledData.map(_._1)).map(_.swap)
     val joinedData = labeledData.zipWithIndex().map(_.swap).join(result.zipWithIndex().map(_.swap))
 
-    val centers = model.getCenters()
-    joinedData.sparkContext.broadcast(centers)
+    val clusters = model.getClusters()
+    joinedData.sparkContext.broadcast(clusters)
     val (diffTotal, n) = joinedData.map { case ((idx, ((vector1, seedVector), (vector2, closestIdx)))) =>
-      val closestCenter = centers(closestIdx)
-      val d = (seedVector.toArray zip closestCenter.toArray).map { case (elm1, elm2) => elm1 - elm2}
+      val closestCluster = clusters(closestIdx)
+      val d = (seedVector.toArray zip closestCluster.center.toArray)
+          .map { case (elm1, elm2) => Math.pow(elm1 - elm2, 2.0)}
       (d, 1)
     }.reduce { case ((array1, n1), (array2, n2)) =>
       val array = (array1 zip array2).map { case (elm1, elm2) => elm1 + elm2}
@@ -57,24 +58,27 @@ object AccuracyTestApp {
       (array, n)
     }
 
+    // show the result
     println(s"==== Experiment Result ====")
     println(s"Total Rows: ${labeledData.count()}")
-    println(s"# Clusters: ${numClusters}")
-    println(s"Centers:")
-    model.getCenters().foreach(center => println(s"  ${center.toArray.mkString(",")}"))
+    println(s"Given # Clusters: ${numClusters}")
     println(s"Dimension: ${dimension}")
     println(s"Train Time: ${model.trainTime} [msec]")
     println(s"Predict Time: ${model.predictTime} [msec]")
     println(s"Total Diff Vector: ${diffTotal.map(_ / n).mkString(", ")}")
+    println(s"== Centers: ${model.getClusters().size}")
+    model.getClusters().map(_.center)
+        .foreach(center => println(s"  ${center.toArray.mkString(",")}"))
     println(s"== Result Vectors and Their Rows: ")
     result.map { case (vector, closestIdx) => (closestIdx, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().foreach { case (count, closestIdx) =>
-      val vector = centers(closestIdx)
-      println(s"  Count: ${count}, Seed Vector: ${vector.toArray.mkString(",")}")
+        .map(_.swap).sortByKey().collect().foreach { case (count, closestIdx) =>
+      val closestCluster = clusters(closestIdx)
+      val vector = closestCluster.center
+      println(s"  Count: ${count}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.mkString(",")}")
     }
     println(s"== Seed Vectors and Their Rows: ")
     labeledData.map { case (vector, seedVector) => (seedVector, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().foreach { case (count, vector) =>
+        .map(_.swap).sortByKey().collect().foreach { case (count, vector) =>
       println(s"  Count: ${count}, Seed Vector: ${vector.toArray.mkString(",")}")
     }
   }
@@ -84,13 +88,10 @@ object AccuracyTestApp {
     exponent: Int,
     dim: Int): RDD[(Vector, Vector)] = {
 
-    /**
-     * generate a sequence (2, ..(x200).., 2, 4, ..(x400).., 4, 8, ..(x800).., 8, ....)
-     */
     def generateSeedSeq(n: Int): Seq[Int] = {
-      val seed = Math.pow(2, n).toInt
+      val seed = 10 * n
       val times = 1000
-      seed match {
+      n match {
         case 1 => (1 to n * times).map(i => seed).toSeq
         case _ => (1 to n * times).map(i => seed).toSeq ++ generateSeedSeq(n - 1)
       }

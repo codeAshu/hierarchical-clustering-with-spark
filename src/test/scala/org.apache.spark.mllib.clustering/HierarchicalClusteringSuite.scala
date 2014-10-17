@@ -17,6 +17,7 @@
 
 package org.apache.spark.mllib.clustering
 
+import org.apache.spark.SparkContext._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.random.UniformGenerator
 import org.apache.spark.rdd.RDD
@@ -55,27 +56,29 @@ class HierarchicalClusteringModelSuite
   var model: HierarchicalClusteringModel = _
 
   override def beforeEach() {
-    val seed = (1 to 99).map { i =>
+    val seed = (0 to 99).map { i =>
       val label = Math.floor(i / 10)
-      val vector = Vectors.dense(label + Math.random(), label + Math.random(), label + Math.random())
+      val vector = Vectors.dense(label, label, label)
       (label, vector)
     }
     data = sc.parallelize(seed.map(_._2))
 
-    val conf = new HierarchicalClusteringConf().setNumClusters(10)
+    val conf = new HierarchicalClusteringConf().setNumClusters(10).setRandomSeed(1)
     app = new HierarchicalClustering(conf)
     model = app.train(data)
   }
 
   test("should get the array of ClusterTree") {
-    val centers = model.getCenters()
-    assert(centers.isInstanceOf[Array[Vector]])
-    assert(centers.size === 10)
+    val clusters = model.getClusters()
+    assert(clusters.isInstanceOf[Array[ClusterTree]])
+    assert(clusters.size === 10)
   }
 
-  test("should ") {
+  test("the number of predicted clusters should be same") {
     val predictedData = model.predict(data)
-    predictedData.foreach(println)
+    // the number of contained vectors in each cluster is 10
+    predictedData.map { case (i, vector) => (i, 1)}.reduceByKey(_ + _)
+        .collect().foreach { case (idx, n) => println(s"${idx}, ${n}"); assert(n === 10) }
   }
 }
 

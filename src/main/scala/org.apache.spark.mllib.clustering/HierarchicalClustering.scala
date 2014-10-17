@@ -236,18 +236,20 @@ object HierarchicalClustering {
 }
 
 /**
- * the model for Hierarchical clustering
+ * this class is used for the model of the hierarchical clustering
  *
  * @param clusterTree a cluster as a tree node
- * @param trainTime the time for training as milli-seconds
+ * @param trainTime the millisecons for executing a training
+ * @param predictTime the milliseconds for executing a prediction
  * @param isTrained if the model has been trained, the flag is true
+ * @param clusters the clusters as the result of the training
  */
 class HierarchicalClusteringModel private (
   val clusterTree: ClusterTree,
   var trainTime: Int,
   var predictTime: Int,
   var isTrained: Boolean,
-  private var centers: Option[Array[Vector]]) extends Serializable {
+  private var clusters: Option[Array[ClusterTree]]) extends Serializable {
 
   def this(clusterTree: ClusterTree) = this(clusterTree, 0, 0, false, None)
 
@@ -255,13 +257,13 @@ class HierarchicalClusteringModel private (
    * Gets the centers
    * @return the centers of clusters
    */
-  def getCenters(): Array[Vector] = {
-    if (centers == None) {
+  def getClusters(): Array[ClusterTree] = {
+    if(clusters == None) {
       val clusters = this.clusterTree.toSeq().filter(_.isLeaf())
           .sortWith((a, b) => a.depth() < b.depth()).toArray
-      this.centers = Some(clusters.map(_.center))
+      this.clusters = Some(clusters)
     }
-    this.centers.get
+    this.clusters.get
   }
 
   /**
@@ -272,7 +274,7 @@ class HierarchicalClusteringModel private (
   def predict(data: RDD[Vector]): RDD[(Int, Vector)] = {
     val startTime = System.currentTimeMillis() // to measure the execution time
 
-    val centers = getCenters()
+    val centers = getClusters().map(_.center)
     val finder = new EuclideanClosestCenterFinder(centers)
     data.sparkContext.broadcast(centers)
     data.sparkContext.broadcast(finder)
@@ -415,11 +417,13 @@ object ClusterTree {
   def fromRDD(data: RDD[Vector]): ClusterTree = {
     // calculates its center
     val pointStat = data.mapPartitions { iter =>
+      if(iter.isEmpty) {
+        throw new IllegalArgumentException("# partitions is too large to run against its rows")
+      }
       val stat = iter.map(v => (v.toBreeze, 1)).reduce((a, b) => (a._1 + b._1, a._2 + b._2))
       Iterator(stat)
     }.reduce((a, b) => (a._1 + b._1, a._2 + b._2))
     val center = Vectors.fromBreeze(pointStat._1.:/(pointStat._2.toDouble))
-
     new ClusterTree(center, data)
   }
 }
