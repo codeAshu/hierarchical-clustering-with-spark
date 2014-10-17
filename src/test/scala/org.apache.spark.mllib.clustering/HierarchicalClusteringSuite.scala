@@ -78,7 +78,7 @@ class HierarchicalClusteringModelSuite
     val predictedData = model.predict(data)
     // the number of contained vectors in each cluster is 10
     predictedData.map { case (i, vector) => (i, 1)}.reduceByKey(_ + _)
-        .collect().foreach { case (idx, n) => println(s"${idx}, ${n}"); assert(n === 10) }
+        .collect().foreach { case (idx, n) => assert(n === 10) }
   }
 }
 
