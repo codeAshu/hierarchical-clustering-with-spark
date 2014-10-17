@@ -62,25 +62,30 @@ object AccuracyTestApp {
     println(s"==== Experiment Result ====")
     println(s"Total Rows: ${labeledData.count()}")
     println(s"Given # Clusters: ${numClusters}")
+    println(s"Result Clusters: ${model.getClusters().size}")
     println(s"Dimension: ${dimension}")
     println(s"Train Time: ${model.trainTime} [msec]")
     println(s"Predict Time: ${model.predictTime} [msec]")
-    println(s"Total Diff Vector: ${diffTotal.map(_ / n).mkString(", ")}")
-    println(s"== Centers: ${model.getClusters().size}")
-    model.getClusters().map(_.center)
-        .foreach(center => println(s"  ${center.toArray.mkString(",")}"))
-    println(s"== Result Vectors and Their Rows: ")
-    result.map { case (vector, closestIdx) => (closestIdx, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().collect().foreach { case (count, closestIdx) =>
-      val closestCluster = clusters(closestIdx)
-      val vector = closestCluster.center
-      println(s"  Count: ${count}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.mkString(",")}")
-    }
-    println(s"== Seed Vectors and Their Rows: ")
-    labeledData.map { case (vector, seedVector) => (seedVector, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().collect().foreach { case (count, vector) =>
-      println(s"  Count: ${count}, Seed Vector: ${vector.toArray.mkString(",")}")
-    }
+    val weightedTotalVariance = model.getClusters()
+        .map(c => c.getDataSize().get * c.getVariance().get).sum
+    val meanVariance = weightedTotalVariance / labeledData.count()
+    println(s"Mean Standard Deviation: ${Math.sqrt(meanVariance)}")
+    //println(s"Total Diff Vector: ${diffTotal.map(_ / n).mkString(", ")}")
+    //println(s"== Centers: ${model.getClusters().size}")
+    //model.getClusters().map(_.center)
+    //    .foreach(center => println(s"  ${center.toArray.mkString(",")}"))
+    //println(s"== Result Vectors and Their Rows: ")
+    //result.map { case (vector, closestIdx) => (closestIdx, 1)}.reduceByKey(_ + _)
+    //    .map(_.swap).sortByKey().collect().foreach { case (count, closestIdx) =>
+    //  val closestCluster = clusters(closestIdx)
+    //  val vector = closestCluster.center
+    //  println(s"  Count: ${count}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.mkString(",")}")
+    //}
+    //println(s"== Seed Vectors and Their Rows: ")
+    //labeledData.map { case (vector, seedVector) => (seedVector, 1)}.reduceByKey(_ + _)
+    //    .map(_.swap).sortByKey().collect().foreach { case (count, vector) =>
+    //  println(s"  Count: ${count}, Seed Vector: ${vector.toArray.mkString(",")}")
+    //    }
   }
 
   def generateData(sc: SparkContext,
