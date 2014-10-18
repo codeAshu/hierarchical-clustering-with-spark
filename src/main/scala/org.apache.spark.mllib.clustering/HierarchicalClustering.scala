@@ -107,10 +107,10 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
     val startTime = System.currentTimeMillis() // to measure the execution time
     val clusterTree = ClusterTree.fromRDD(data) // make the root node
     val model = new HierarchicalClusteringModel(clusterTree)
-    clusterTree.updateStats()
+    val statsUpdater = new ClusterTreeStatsUpdater()
 
     var node: Option[ClusterTree] = Some(model.clusterTree)
-    node.get.updateStats()
+    statsUpdater(node.get)
 
     // If the followed conditions are satisfied, and then stop the training.
     //   1. There is no splittable cluster
@@ -127,7 +127,7 @@ class HierarchicalClustering(val conf: HierarchicalClusteringConf) extends Seria
       var isSingleCluster = false
       for (retry <- 1 to this.conf.getNumRetries()) {
         if (isMerged == false && isSingleCluster == false) {
-          var subNodes = split(node.get).map(_.updateStats())
+          var subNodes = split(node.get).map(subNode => statsUpdater(subNode))
           // it seems that there is no splittable node
           if (subNodes.size == 1) isSingleCluster = false
           // add the sub nodes in to the tree
@@ -436,14 +436,6 @@ class ClusterTree(
    */
   def isSplittable(): Boolean = {
     this.isLeaf && this.getDataSize != None && this.getDataSize.get >= 2
-  }
-
-  /**
-   * Updates the statistics of the cluster, such as its variance
-   */
-  def updateStats(): ClusterTree = {
-    val updater = new ClusterTreeStatsUpdater()
-    updater(this)
   }
 }
 
