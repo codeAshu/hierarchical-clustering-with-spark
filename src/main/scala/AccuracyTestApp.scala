@@ -41,9 +41,35 @@ object AccuracyTestApp {
 
     val labeledData = generateData(sc, numPartitions, numClusters, dimension)
     labeledData.cache
-    val model = HierarchicalClustering.train(labeledData.map(_._1), numClusters)
-    val result = model.predict(labeledData.map(_._1)).map(_.swap)
+    val model = HierarchicalClustering.train(labeledData.map(_._2), numClusters)
+    val result = model.predict(labeledData.map(_._2)).map(_.swap)
     val joinedData = labeledData.zipWithIndex().map(_.swap).join(result.zipWithIndex().map(_.swap))
+
+    val weightedTotalVariance = model.getClusters()
+        .map(c => c.getDataSize().get * c.getVariance().get).sum
+    val meanVariance = weightedTotalVariance / labeledData.count()
+
+    val clusters = model.getClusters()
+    sc.broadcast(clusters)
+    val result1 = result.map { case (vector, closestIdx) => (closestIdx, 1)}.reduceByKey(_ + _)
+        .map(_.swap).sortByKey().collect().map { case (count, closestIdx) =>
+      val closestCluster = clusters(closestIdx)
+      val vector = closestCluster.center
+      s"  Count: ${count}, Depth: ${closestCluster.depth()}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.take(3).mkString(",")}..."
+    }
+
+//    val seedVectors = labeledData.map { case (seed, v, sv) => seed}.distinct().collect().sorted
+//    val result2 = seedVectors.map { seed =>
+//      val rdd = labeledData.filter { case (s, v, sv) => seed == s}.map { case (s, v, sv) => v}
+//      val cluster = ClusterTree.fromRDD(rdd)
+//      cluster.updateStats()
+//      s"  Count: ${cluster.getDataSize()}, Depth: ${cluster.depth()}, Variance: ${cluster.getVariance().get}, Seed Vector: ${cluster.center.toArray.take(3).mkString(",")}..."
+//    }
+
+    val result3 = labeledData.map { case (seed, vector, seedVector) => (seedVector, 1)}.reduceByKey(_ + _)
+        .map(_.swap).sortByKey().collect().map { case (count, vector) =>
+      s"  Count: ${count}, Seed Vector: ${vector.toArray.take(3).mkString(",")}..."
+    }
 
     // show the result
     println(s"==== Experiment Result ====")
@@ -54,49 +80,36 @@ object AccuracyTestApp {
     println(s"Train Time: ${model.trainTime} [msec]")
     println(s"Predict Time: ${model.predictTime} [msec]")
 
-    val weightedTotalVariance = model.getClusters()
-        .map(c => c.getDataSize().get * c.getVariance().get).sum
-    val meanVariance = weightedTotalVariance / labeledData.count()
     println(s"Mean Standard Deviation: ${Math.sqrt(meanVariance)}")
-
     println(s"== Result Vectors and Their Rows: ")
-    val clusters = model.getClusters()
-    sc.broadcast(clusters)
-    result.map { case (vector, closestIdx) => (closestIdx, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().collect().foreach { case (count, closestIdx) =>
-      val closestCluster = clusters(closestIdx)
-      val vector = closestCluster.center
-      println(s"  Count: ${count}, Depth: ${closestCluster.depth()}, Variance: ${closestCluster.getVariance().get}, Seed Vector: ${vector.toArray.take(3).mkString(",")}...")
-    }
-
+    result1.foreach(println)
+//    println(s"== Original Vectors:")
+//    result2.foreach(println)
     println(s"== Seed Vectors and Their Rows: ")
-    labeledData.map { case (vector, seedVector) => (seedVector, 1)}.reduceByKey(_ + _)
-        .map(_.swap).sortByKey().collect().foreach { case (count, vector) =>
-      println(s"  Count: ${count}, Seed Vector: ${vector.toArray.take(3).mkString(",")}...")
-    }
+    result3.foreach(println)
   }
 
   def generateData(sc: SparkContext,
     numPartitions: Int,
-    exponent: Int,
-    dim: Int): RDD[(Vector, Vector)] = {
-
-    def generateSeedSeq(n: Int): Seq[Int] = {
-      val seed = 10 * n
-      val times = 1000
-      n match {
-        case 1 => (1 to n * times).map(i => seed).toSeq
-        case _ => (1 to n * times).map(i => seed).toSeq ++ generateSeedSeq(n - 1)
-      }
-    }
+    numClusters: Int,
+    dim: Int): RDD[(Int, Vector, Vector)] = {
 
     val random = new XORShiftRNG()
     sc.broadcast(random)
-    sc.parallelize(generateSeedSeq(exponent), numPartitions).map { i =>
-      val seedArray = (1 to dim).map(j => i.toDouble).toArray
+    sc.parallelize(generateSeedSeq(numClusters), numPartitions).map { seed =>
+      val seedArray = (1 to dim).map(j => seed.toDouble).toArray
       val seedVector = Vectors.dense(seedArray)
-      val vector = Vectors.dense(seedArray.map(elm => elm + 0.01 * elm * random.nextGaussian()))
-      (vector, seedVector)
+      val vector = Vectors.dense(seedArray.map(elm => elm + 0.01 * random.nextGaussian()))
+      (seed, vector, seedVector)
+    }
+  }
+
+  def generateSeedSeq(n: Int): Seq[Int] = {
+    val seed = 10 * n
+    val times = 10
+    n match {
+      case 1 => (1 to n * times).map(i => seed).toSeq
+      case _ => generateSeedSeq(n - 1) ++ (1 to n * times).map(i => seed).toSeq
     }
   }
 }
