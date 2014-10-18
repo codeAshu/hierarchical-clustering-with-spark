@@ -106,7 +106,7 @@ object AccuracyTestApp {
 
   def generateSeedSeq(n: Int): Seq[Int] = {
     val seed = 10 * n
-    val times = 10
+    val times = 1000
     n match {
       case 1 => (1 to n * times).map(i => seed).toSeq
       case _ => generateSeedSeq(n - 1) ++ (1 to n * times).map(i => seed).toSeq
