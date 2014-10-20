@@ -1,5 +1,19 @@
 # The Result of Benchmarking a Hierarchical Clustering
 
+## Abstract
+
+I implemented a hierarchical clustering algorithm and tested it.
+I inspected the effect of the number of input rows in Experiment 1. 
+The more the number of input data rows increases, the more the training execution time increases linearly.
+And I inspected the effect of the input vector's dimensions in Experiment 2.
+The more the number of input vector's dimensions increases, the training execution time increases linearly.
+And I inspected the effect of the number of CPU cores in Experiment 3.
+The more the number of CPU cores on the Apache Spark cluster, the more the training execution time decrease. However if the number of CPU cores is large against the input data size, the time is saturant.
+Ant I checked the accuracy of the hierarchical clustering model.
+As a result of the experiments, it is good enought.
+
+
+
 
 ## Spark Cluster Specification
 
@@ -61,10 +75,11 @@ I execute my hierarchical clustering, changing the some parameters as bellow.  T
 |      160|          20|        281469|       100| 1e+07|           160| 281.47|
 |      160|          50|        502096|       100| 1e+07|           160| 502.10|
 |      160|         100|        871325|       100| 1e+07|           160| 871.33|
+
 Where `maxCores` is the number of execution cores on Apache Spark,`numClusters` is the number of clusters gotten, `trainMilliSec` is the execution time for training in millisecond, `dimension` is the number of dimensions of the vectors which are treated in the clustering algorithm, `rows` is the number of trained vectors, `numPartitions` is the number of partitions of a RDD, `sec` is the execution time for training in second.
 
 
-## Experiment 2: The Effects of Tne Dimension
+## Experiment 2: The Effects of Tne Input Vector's Dimensions
 
 ### Experimental Setup
 
@@ -207,6 +222,13 @@ Squares Mean Variance: 0.02245107706182275
   Count: 5000, Seed Vector: 50.0,50.0,50.0...
 ```
 
+
+## Discussion
+
+- The more the number of clusters which you want increases, the more the training execution time increases linearly.
+- The more the number of input data rows increases, the more the training execution time increases linearly.
+- The more the number of CPU cores on the Apache Spark cluster, the more the training execution time decrease. However if the number of CPU cores is large against the input data size, the time is saturant.
+- The accuracy of this model is good enough according to `Appendix B`.
 
 
 
@@ -569,6 +591,21 @@ Squares Mean Variance: 0.02245107706182275
 
 
 ## Appendix B: Otthers Accuracy Test Results
+
+Where `Total Rows` means the number of the input data rows.
+`Given # Clusters` means the number of clusters as one of the given parameters.
+`Result # Clusters` means the number of clusters  as a result of the clustering.
+`Dimension` means the number of dimensions of the input data vector.
+`Train Times` means the execution time as milliseconds to train the model.
+`Predict Time` means the execution time as milliseconds to predict with the data.
+`Squared Mean Variance` means the squared value of the mean variance for all result clusters.
+
+`Count` at `Result Vectors and Their Rows` means the nuber of vectors in each cluster.
+`Variance` at `Result Vectors and Their Rows` means the sum of the variances for all dimension of each cluster.
+`Vector` at `Result Vectors and Their Rows` means the head three element of the center of each cluster. In short, it is good that the vector is nearly equal to its seed vector.
+
+`Count` at `Seed Vectors and Their Rows` means the number of generated vectors of each cluster.
+`Seed Vector` at `Seed Vectors and Their Rows` means the head three elements of the seed vector of each cluster.
 
 ### The Number of Dimensions: 5 
 

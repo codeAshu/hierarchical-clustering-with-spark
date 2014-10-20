@@ -1,4 +1,4 @@
-## Experiment 2: The Effects of Tne Dimension
+## Experiment 2: The Effects of Tne Input Vector's Dimensions
 
 ### Experimental Setup
 

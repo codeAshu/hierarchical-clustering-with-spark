@@ -46,4 +46,5 @@ legend("topleft", legend=c(names(y))
 ```{r echo=FALSE, warning=FALSE, results="asis"}
 kable(result2)
 ```
+
 Where `maxCores` is the number of execution cores on Apache Spark,`numClusters` is the number of clusters gotten, `trainMilliSec` is the execution time for training in millisecond, `dimension` is the number of dimensions of the vectors which are treated in the clustering algorithm, `rows` is the number of trained vectors, `numPartitions` is the number of partitions of a RDD, `sec` is the execution time for training in second.

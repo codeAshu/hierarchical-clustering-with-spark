@@ -1,5 +1,20 @@
 ## Appendix B: Otthers Accuracy Test Results
 
+Where `Total Rows` means the number of the input data rows.
+`Given # Clusters` means the number of clusters as one of the given parameters.
+`Result # Clusters` means the number of clusters  as a result of the clustering.
+`Dimension` means the number of dimensions of the input data vector.
+`Train Times` means the execution time as milliseconds to train the model.
+`Predict Time` means the execution time as milliseconds to predict with the data.
+`Squared Mean Variance` means the squared value of the mean variance for all result clusters.
+
+`Count` at `Result Vectors and Their Rows` means the nuber of vectors in each cluster.
+`Variance` at `Result Vectors and Their Rows` means the sum of the variances for all dimension of each cluster.
+`Vector` at `Result Vectors and Their Rows` means the head three element of the center of each cluster. In short, it is good that the vector is nearly equal to its seed vector.
+
+`Count` at `Seed Vectors and Their Rows` means the number of generated vectors of each cluster.
+`Seed Vector` at `Seed Vectors and Their Rows` means the head three elements of the seed vector of each cluster.
+
 ### The Number of Dimensions: 5 
 
 ```{r echo=FALSE, warning=FALSE, comment=""}
