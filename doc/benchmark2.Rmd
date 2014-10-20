@@ -1,0 +1,40 @@
+# The Result of Benchmarking a Hierarchical Clustering
+
+## Abstract
+
+I implemented a hierarchical clustering algorithm and tested it.
+I inspected the effect of the number of input rows in Experiment 1. 
+The more the number of input data rows increases, the more the training execution time increases linearly.
+And I inspected the effect of the input vector's dimensions in Experiment 2.
+The more the number of input vector's dimensions increases, the training execution time increases linearly.
+And I inspected the effect of the number of CPU cores in Experiment 3.
+The more the number of CPU cores on the Apache Spark cluster, the more the training execution time decrease. However if the number of CPU cores is large against the input data size, the time is saturant.
+Ant I checked the accuracy of the hierarchical clustering model.
+As a result of the experiments, it is good enought.
+
+
+
+```{r child=c('cluster-spec.Rmd')}
+```
+
+```{r child=c('experiment210.Rmd')}
+```
+
+```{r child=c('experiment220.Rmd')}
+```
+
+```{r child=c('experiment230.Rmd')}
+```
+
+```{r child=c('experiment240.Rmd')}
+```
+
+```{r child=c('discussion2.Rmd')}
+```
+
+```{r child=c('spark-environment.html')}
+```
+
+```{r child=c('appendix-accuracy.Rmd')}
+```
+

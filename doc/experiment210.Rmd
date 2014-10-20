@@ -1,0 +1,50 @@
+## Experiment 1: The Effects of Tne Number of Input Data Rows
+
+### Experimental Setup
+
+I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
+
+- # Used Cores: 160
+- # Clusters: 5, 10, 20, 50, 100
+- # Rows: 100000, 500000, 1000000, 5000000, 10000000
+- # Dimensions: 100
+
+### The Result of Training Execution Time
+
+```{r echo=FALSE, warning=FALSE}
+library(reshape2)
+result2 <- read.csv("./data/benchmark-cores64-dim100-slave5-improved.csv")
+result2$sec <- result2$trainMilliSec / 1000
+```
+
+```{r echo=FALSE, warning=FALSE}
+result2.cast <- dcast(result2, numClusters ~ rows, value.var="sec", sum)
+x <- result2.cast[, 1]
+y <- result2.cast[, 2:ncol(result2.cast)]
+matplot(x, y
+        , xlab="# Clusters"
+        , ylab="Training Execution Time [sec]"
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
+grid()
+legend("topleft", legend=c(names(y))
+       , pch=1:(length(y)), col=rainbow(length(y)))
+```
+
+```{r echo=FALSE, warning=FALSE}
+result2.cast <- dcast(result2, rows ~ numClusters, value.var="sec", sum)
+x <- result2.cast[, 1]
+y <- result2.cast[, 2:6]
+matplot(x, y
+        , xlab="# Rows"
+        , ylab="Training Execution Time [sec]"
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
+grid()
+legend("topleft", legend=c(names(y))
+       , pch=1:(length(y)), col=rainbow(length(y)))
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+kable(result2)
+```
+
+Where `maxCores` is the number of execution cores on Apache Spark,`numClusters` is the number of clusters gotten, `trainMilliSec` is the execution time for training in millisecond, `dimension` is the number of dimensions of the vectors which are treated in the clustering algorithm, `rows` is the number of trained vectors, `numPartitions` is the number of partitions of a RDD, `sec` is the execution time for training in second.

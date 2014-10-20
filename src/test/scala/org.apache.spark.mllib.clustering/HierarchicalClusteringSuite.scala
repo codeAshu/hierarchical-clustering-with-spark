@@ -17,6 +17,7 @@
 
 package org.apache.spark.mllib.clustering
 
+import org.apache.spark.SparkContext._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.random.UniformGenerator
 import org.apache.spark.rdd.RDD
@@ -44,6 +45,40 @@ class HierarichicalClusteringConfSuite extends FunSuite {
     assert(conf.getSubIterations === 20)
     conf.setSubIterations(50)
     assert(conf.getSubIterations === 50)
+  }
+}
+
+class HierarchicalClusteringModelSuite
+    extends FunSuite with LocalSparkContext with BeforeAndAfterEach {
+
+  var data: RDD[Vector] = _
+  var app: HierarchicalClustering = _
+  var model: HierarchicalClusteringModel = _
+
+  override def beforeEach() {
+    val seed = (0 to 99).map { i =>
+      val label = Math.floor(i / 10)
+      val vector = Vectors.dense(label, label, label)
+      (label, vector)
+    }
+    data = sc.parallelize(seed.map(_._2))
+
+    val conf = new HierarchicalClusteringConf().setNumClusters(10).setRandomSeed(1)
+    app = new HierarchicalClustering(conf)
+    model = app.train(data)
+  }
+
+  test("should get the array of ClusterTree") {
+    val clusters = model.getClusters()
+    assert(clusters.isInstanceOf[Array[ClusterTree]])
+    assert(clusters.size === 10)
+  }
+
+  test("the number of predicted clusters should be same") {
+    val predictedData = model.predict(data)
+    // the number of contained vectors in each cluster is 10
+    predictedData.map { case (i, vector) => (i, 1)}.reduceByKey(_ + _)
+        .collect().foreach { case (idx, n) => assert(n === 10) }
   }
 }
 
@@ -75,20 +110,33 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
     val conf = new HierarchicalClusteringConf().setNumClusters(3)
     val app = new HierarchicalClustering(conf)
     val model = app.train(data)
-    assert(model.clusterTree.treeSize() === 3)
-    model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getStats() != None)}
+    assert(model.clusterTree.toSeq().filter(_.isLeaf()).size === 3)
+    model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getVariance() != None)}
   }
 
   test("train with a random dataset") {
-    val data = sc.parallelize((1 to 100).map(i => Vectors.dense(Math.random(), Math.random())), 2)
+    val data = sc.parallelize((1 to 99)
+        .map(i => Vectors.dense(i + Math.random, i + Math.random)), 2)
     val conf = new HierarchicalClusteringConf().setNumClusters(10)
     val app = new HierarchicalClustering(conf)
     val model = app.train(data)
     assert(model.clusterTree.treeSize() === 10)
-    model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getStats() != None)}
+    model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getVariance() != None)}
   }
 
-  test("should stop if there is no splitable cluster") {
+  test("should stop if the variance inclreases fot the clustering") {
+    // generate data which has more than 5 clusters
+    val data = sc.parallelize((1 to 99)
+        .map(i => Vectors.dense((i % 5).toDouble, (i % 5).toDouble)), 2)
+    // but the number of given clusters is 10
+    val conf = new HierarchicalClusteringConf().setNumClusters(10)
+    val app = new HierarchicalClustering(conf)
+    val model = app.train(data)
+    assert(model.clusterTree.treeSize() === 5)
+    model.clusterTree.toSeq().foreach { tree: ClusterTree => assert(tree.getVariance() != None)}
+  }
+
+  test("should stop if there is no splittable cluster") {
     val data = sc.parallelize((1 to 100).map(i => Vectors.dense(0.0, 0.0)), 1)
     val conf = new HierarchicalClusteringConf().setNumClusters(5)
     val app = new HierarchicalClustering(conf)
@@ -107,15 +155,18 @@ class HierarchicalClusteringSuite extends FunSuite with BeforeAndAfterEach with 
 
   test("takeInitCenters") {
     val data = Array(
-      Vectors.dense(1.0, 1.0, 1.0),
-      Vectors.dense(10.0, 10.0, 10.0),
-      Vectors.dense(100.0, 100.0, 100.0)
+      Vectors.dense(1.0, 4.0, 7.0),
+      Vectors.dense(2.0, 5.0, 8.0), // this is the mean vector in the data
+      Vectors.dense(3.0, 6.0, 9.0)
     )
-    val rdd = sc.parallelize(data, 2)
-    val vectors = new HierarchicalClustering().takeInitCenters(rdd)
-    assert(vectors.size === 2)
-    assert(vectors(0) === data(0))
-    assert(vectors(1) === data(2))
+    val tree = ClusterTree.fromRDD(sc.parallelize(data, 2))
+    val conf = new HierarchicalClusteringConf().setRandomRange(0.1)
+    val initVectors = new HierarchicalClustering(conf).takeInitCenters(tree.center)
+    val relativeError1 = (data(1).toBreeze - initVectors(0)).:/(data(1).toBreeze)
+    val relativeError2 = (initVectors(1) - data(1).toBreeze).:/(data(1).toBreeze)
+    assert(initVectors.size === 2)
+    assert(relativeError1.forall(_ <= 0.1))
+    assert(relativeError2.forall(_ <= 0.1))
   }
 }
 
@@ -183,43 +234,7 @@ class ClusterTreeSuite extends FunSuite with LocalSparkContext with SampleData {
   }
 }
 
-class DataSizeStatsSuite extends FunSuite with LocalSparkContext with SampleData {
-
-  override var data: RDD[Vector] = _
-  override var subData1: RDD[Vector] = _
-  override var subData21: RDD[Vector] = _
-  override var subData22: RDD[Vector] = _
-  override var subData2: RDD[Vector] = _
-
-  test("select the largest cluster tree") {
-    data = sc.parallelize(vectors)
-    subData1 = sc.parallelize(subVectors1)
-    subData2 = sc.parallelize(subVectors2)
-    subData21 = sc.parallelize(subVectors21)
-    subData22 = sc.parallelize(subVectors22)
-
-    val root = ClusterTree.fromRDD(data)
-    val child1 = ClusterTree.fromRDD(subData1)
-    val child2 = ClusterTree.fromRDD(subData2)
-    val child21 = ClusterTree.fromRDD(subData21)
-    val child22 = ClusterTree.fromRDD(subData22)
-    root.insert(child1)
-    root.insert(child2)
-    child2.insert(child21)
-    child2.insert(child22)
-
-    val stats = new DataSizeStats
-    val statsMap = stats(root.toSeq())
-    assert(statsMap.size == 5)
-    assert(statsMap(root) === 100.0)
-    assert(statsMap(child1) === 70.0)
-    assert(statsMap(child2) === 30.0)
-    assert(statsMap(child21) === 20.0)
-    assert(statsMap(child22) === 10.0)
-  }
-}
-
-class ClusterVarianceStatsSuite extends FunSuite with LocalSparkContext {
+class ClusteringStatsUpdaterSuite extends FunSuite with LocalSparkContext {
 
   test("the variance of a data should be greater than that of another one") {
     // the variance of subData2 is greater than that of subData1
@@ -235,24 +250,26 @@ class ClusterVarianceStatsSuite extends FunSuite with LocalSparkContext {
     root.insert(child1)
     root.insert(child2)
 
-    val stats = new ClusterVarianceStats
-    val statsMap = stats(root.toSeq())
-    assert(statsMap.size === 3)
-    assert(statsMap(child1) < statsMap(child2))
+    val updater = new ClusterTreeStatsUpdater
+    root.toSeq().foreach(tree => updater(tree))
+    assert(child1.getVariance().get < child2.getVariance().get)
   }
 
   test("the sum of variance should be 0.0 with all same records") {
-    val data = sc.parallelize((1 to 99).map(i => Vectors.dense(1.0, 2.0)), 4)
-    val stats = new  ClusterVarianceStats()
-    val variance = stats.calculateVariance(data)
-    assert(variance === 0.0)
+    val data = sc.parallelize((1 to 9).map(i => Vectors.dense(1.0, 2.0)), 4)
+    val clusterTree = ClusterTree.fromRDD(data)
+    val updater = new ClusterTreeStatsUpdater()
+    updater(clusterTree)
+    assert(clusterTree.getDataSize().get === 9)
+    assert(clusterTree.getVariance().get === 0.0)
   }
 
   test("the sum of variance should be 0.0 with one record") {
     val data = sc.parallelize(Seq(Vectors.dense(1.0, 2.0, 3.0)), 1)
-    val stats = new  ClusterVarianceStats()
-    val variance = stats.calculateVariance(data)
-    assert(variance === 0.0)
+    val clusterTree = ClusterTree.fromRDD(data)
+    val updater = new ClusterTreeStatsUpdater()
+    updater(clusterTree)
+    assert(clusterTree.getVariance().get === 0.0)
   }
 
   test("the variance should be 7.5") {
@@ -261,17 +278,20 @@ class ClusterVarianceStatsSuite extends FunSuite with LocalSparkContext {
       Vectors.dense(4.0), Vectors.dense(5.0), Vectors.dense(6.0),
       Vectors.dense(7.0), Vectors.dense(8.0), Vectors.dense(9.0)
     )
-    val data = sc.parallelize(seedData, 3)
-    val stats = new  ClusterVarianceStats()
-    val variance = stats.calculateVariance(data)
-    assert(variance === 7.5)
+    val clusterTree = ClusterTree.fromRDD(sc.parallelize(seedData, 3))
+    val updater = new ClusterTreeStatsUpdater()
+    updater(clusterTree)
+    assert(clusterTree.getDataSize().get === 9)
+    assert(clusterTree.getVariance().get === 7.5)
   }
 
   test("the variance should be 8332500") {
     val data = sc.parallelize((1 to 9999).map(Vectors.dense(_)), 4)
-    val stats = new  ClusterVarianceStats()
-    val variance = stats.calculateVariance(data)
-    assert(variance === 8332500)
+    val clusterTree = ClusterTree.fromRDD(data)
+    val updater = new ClusterTreeStatsUpdater()
+    updater(clusterTree)
+    assert(clusterTree.getDataSize().get === 9999)
+    assert(clusterTree.getVariance().get === 8332500)
   }
 }
 
