@@ -1,0 +1,23 @@
+# The Result of Benchmarking a Hierarchical Clustering
+
+```{r child=c('cluster-spec.Rmd')}
+```
+
+```{r child=c('experiment210.Rmd')}
+```
+
+```{r child=c('experiment220.Rmd')}
+```
+
+```{r child=c('experiment230.Rmd')}
+```
+
+```{r child=c('experiment240.Rmd')}
+```
+
+```{r child=c('discussion2.Rmd')}
+```
+
+```{r child=c('spark-environment.html')}
+```
+

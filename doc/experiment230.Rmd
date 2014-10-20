@@ -1,0 +1,18 @@
+## Experiment 3: The Effect of The Number of CPU Cores
+
+### Experimental Setup
+
+I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
+
+- # Used Cores: 50 100 120 160
+- # Clusters: 20 50 100
+- # Rows: 500000
+- # Dimensions: 100
+
+### The Result of Training Execution Time
+
+```{r echo=FALSE, warning=FALSE}
+library(reshape2)
+#result4 <- read.csv("./data/benchmark-cores.csv")
+#result4$sec <- result4$trainMilliSec / 1000
+```

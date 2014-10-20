@@ -1,0 +1,11 @@
+## Spark Cluster Specification
+
+I run the hierarchical clustering application on EC2 under the below specifaction.
+
+- Master Instance Type: r3.large
+- Slave Instance Type: r3.8xlarge
+    - Cores: 32
+    - Memory: 144GB
+- # of Slaves: 5
+    - Total Cores: 160
+    - Total Memory: 1220GB

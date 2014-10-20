@@ -1,0 +1,36 @@
+## Experiment 2: The Effects of Tne Dimension
+
+### Experimental Setup
+
+I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
+
+- # Used Cores: 160
+- # Clusters: 20 50 100
+- # Rows: 500000
+- # Dimensions: 10, 50, 100, 500, 1000, 10000
+
+### The Result of Training Execution Time
+
+```{r echo=FALSE, warning=FALSE}
+library(reshape2)
+result3 <- read.csv("./data/benchmark-dim100.csv")
+result3$sec <- result3$trainMilliSec / 1000
+```
+
+```{r echo=FALSE, warning=FALSE}
+result3.cast <- dcast(result3, dimension ~ numClusters, value.var="sec", sum)
+x <- result3.cast[, 1]
+y <- result3.cast[, 2:ncol(result3.cast)]
+matplot(x, y
+        , xlab="Dimensions of The Input Vector"
+        , ylab="Training Execution Time [sec]"
+        , ylim=c(0, max(y))
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
+grid()
+legend("topleft", legend=c(names(y))
+       , pch=1:(length(y)), col=rainbow(length(y)))
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+kable(result3)
+```
