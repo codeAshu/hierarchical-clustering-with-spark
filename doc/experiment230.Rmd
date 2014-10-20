@@ -4,7 +4,7 @@
 
 I execute my hierarchical clustering, changing the some parameters as bellow.  The data had been generated randomly. And then I measured the execution time for training each model.
 
-- # Used Cores: 50 100 120 160
+- # Used Cores: 5, 10, 20, 30, 50, 100, 160
 - # Clusters: 20 50 100
 - # Rows: 500000
 - # Dimensions: 100
@@ -13,6 +13,37 @@ I execute my hierarchical clustering, changing the some parameters as bellow.  T
 
 ```{r echo=FALSE, warning=FALSE}
 library(reshape2)
-#result4 <- read.csv("./data/benchmark-cores.csv")
-#result4$sec <- result4$trainMilliSec / 1000
+result4 <- read.csv("./data/benchmark-cpu-cores.csv")
+result4$sec <- result4$trainMilliSec / 1000
+```
+
+```{r echo=FALSE, warning=FALSE}
+result4.cast <- dcast(result4, maxCores ~ numClusters, value.var="sec", sum)
+x <- result4.cast[, 1]
+y <- result4.cast[, 2:ncol(result4.cast)]
+.names <- names(y)
+matplot(x, y
+        , xlab="# CPU Cores"
+        , ylab="Training Execution Time [sec]"
+        , ylim=c(0, max(y))
+        , pch=1:(length(y)), col=rainbow(length(y)), type="o")
+grid()
+legend("topright", legend=.names
+       , pch=1:(length(y)), col=rainbow(length(y)))
+
+x <- result4.cast[, 1]
+y <- apply(result4.cast[, 2:ncol(result4.cast)], 2, function(x){x / x[1]})
+matplot(x, y
+        , xlab="# CPU Cores"
+        , ylab="Index against # Cores = 5"
+        , ylim=c(0, max(y))
+        , pch=1:(length(y)), col=rainbow(ncol(y)), type="o")
+grid()
+legend("topright", legend=.names
+       , pch=1:(length(y)), col=rainbow(ncol(y)))
+```
+
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+kable(result4)
 ```

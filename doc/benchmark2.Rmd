@@ -21,3 +21,6 @@
 ```{r child=c('spark-environment.html')}
 ```
 
+```{r child=c('appendix-accuracy.Rmd')}
+```
+
